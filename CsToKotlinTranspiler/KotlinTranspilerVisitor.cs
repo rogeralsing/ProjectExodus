@@ -446,8 +446,7 @@ namespace ConsoleApplication3
             var arg = GetArgList(node.ParameterList);
             var methodName = ToCamelCase(node.Identifier.Text);
             WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
-
-            base.VisitMethodDeclaration(node);
+            Visit(node.Body);
         }
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
@@ -1048,8 +1047,17 @@ namespace ConsoleApplication3
             {
                 WriteStart($"var {v.Identifier} : {GetKotlinType(node.Type)} = ");
                 Visit(v.Initializer);
+
                 WriteLine();
             }
+        }
+
+        public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
+        {
+            var arg = GetArgList(node.ParameterList);
+            var methodName = ToCamelCase(node.Identifier.Text);
+            WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
+            Visit(node.Body);
         }
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)

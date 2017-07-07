@@ -49,6 +49,16 @@ namespace ConsoleApplication3
             InvokeIt(del);
         }
 
+        public void LocalMethod()
+        {
+            string InternalFunc()
+            {
+                return "result";
+            }
+
+            var y = InternalFunc();
+        }
+
         private void InvokeIt(Action<int, string> del)
         {
             del(1, "hello");
