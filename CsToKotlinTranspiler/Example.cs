@@ -53,7 +53,10 @@ namespace CsToKotlinTranspiler
                 return "result";
             }
 
+            string InternalFunc2() => "result";
+
             var y = InternalFunc();
+            InternalFunc2();
         }
 
         private void InvokeIt(Action<int, string> del)

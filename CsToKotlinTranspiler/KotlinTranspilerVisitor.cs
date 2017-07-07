@@ -1082,7 +1082,15 @@ namespace CsToKotlinTranspiler
             var arg = GetArgList(node.ParameterList);
             var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
             WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
-            Visit(node.Body);
+            if (node.Body != null)
+            {
+                Visit(node.Body);
+            }
+            else
+            {
+                Visit(node.ExpressionBody);
+                WriteLine(); //should maybe be in the arrow expression visit?
+            }
         }
 
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
@@ -1152,7 +1160,8 @@ namespace CsToKotlinTranspiler
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
-            base.VisitArrowExpressionClause(node);
+            Write(" = ");
+            Visit(node.Expression);
         }
 
         public override void VisitEventDeclaration(EventDeclarationSyntax node)
