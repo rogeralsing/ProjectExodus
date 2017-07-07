@@ -30,11 +30,16 @@ namespace CsToKotlinTranspiler
         public override void VisitConstructorDeclaration(ConstructorDeclarationSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
-            WriteLine($"constructor({arg}) {{");
-            _indent++;
-            Visit(node.Body);
-            _indent--;
-            WriteLine("}");
+            WriteStart($"constructor({arg}) ");
+            if (node.Body != null)
+            {
+                Visit(node.Body);
+            }
+            else
+            {
+                Visit(node.ExpressionBody);
+                WriteLine(); //should maybe be in the arrow expression visit?
+            }
         }
 
         public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
@@ -456,7 +461,15 @@ namespace CsToKotlinTranspiler
             var arg = GetArgList(node.ParameterList);
             var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
             WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
-            Visit(node.Body);
+            if (node.Body != null)
+            {
+                Visit(node.Body);
+            }
+            else
+            {
+                Visit(node.ExpressionBody);
+                WriteLine(); //should maybe be in the arrow expression visit?
+            }
         }
 
         public override void VisitOperatorDeclaration(OperatorDeclarationSyntax node)
@@ -860,20 +873,35 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInitializerExpression(InitializerExpressionSyntax node)
         {
-            var first = true;
-            Write("arrayOf(");
-            foreach (var e in node.Expressions)
+            void Init()
             {
-                if (first)
+                var first = true;
+                foreach (var e in node.Expressions)
                 {
-                    first = false;
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        Write(", ");
+                    }
+                    Visit(e);
                 }
-                else
-                {
-                    Write(", ");
-                }
-                Visit(e);
             }
+            
+            if (node.Parent is ObjectCreationExpressionSyntax parent)
+            {
+                var t = _model.GetSymbolInfo(parent.Type).Symbol;
+                Write("listOf(");
+                Init();
+                Write(")");
+                return;
+            }
+
+            
+            Write("arrayOf(");
+            Init();
             Write(")");
         }
 

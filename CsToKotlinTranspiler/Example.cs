@@ -1,10 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CsToKotlinTranspiler
 {
     class Example
     {
+        public Example()
+        {
+            var x = new List<int> {1, 2, 3};
+        }
         public void Main()
         {
             var i = 1.ToString();
