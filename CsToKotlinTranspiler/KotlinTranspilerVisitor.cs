@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ConsoleApplication3
+namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor : CSharpSyntaxWalker
     {
@@ -167,6 +167,16 @@ namespace ConsoleApplication3
         public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
         {
             base.VisitEqualsValueClause(node);
+        }
+
+        public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
+        {
+            base.VisitSingleVariableDesignation(node);
+        }
+
+        public override void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
+        {
+            base.VisitParenthesizedVariableDesignation(node);
         }
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
@@ -428,7 +438,7 @@ namespace ConsoleApplication3
                     Visit(node.Expression);
                     Write(".");
                     var name = node.Name.ToString();
-                    name = ToCamelCase(name);
+                    name = KotlinTranspilerVisitor.ToCamelCase(name);
                     Write(name);
                     break;
             }
@@ -444,7 +454,7 @@ namespace ConsoleApplication3
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
-            var methodName = ToCamelCase(node.Identifier.Text);
+            var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
             WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
             Visit(node.Body);
         }
@@ -480,7 +490,7 @@ namespace ConsoleApplication3
             var sym = si.Symbol;
             if (sym.Kind == SymbolKind.Method)
             {
-                var name = ToCamelCase(node.Identifier.Text);
+                var name = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
                 Write(name);
                 return;
             } 
@@ -746,6 +756,16 @@ namespace ConsoleApplication3
             base.VisitReferenceDirectiveTrivia(node);
         }
 
+        public override void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
+        {
+            base.VisitLoadDirectiveTrivia(node);
+        }
+
+        public override void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
+        {
+            base.VisitShebangDirectiveTrivia(node);
+        }
+
         public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
         {
             base.VisitIndexerDeclaration(node);
@@ -807,6 +827,11 @@ namespace ConsoleApplication3
                 Visit(node.Body);
                 Write("}");
             }
+        }
+
+        public override void VisitRefExpression(RefExpressionSyntax node)
+        {
+            base.VisitRefExpression(node);
         }
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
@@ -1055,7 +1080,7 @@ namespace ConsoleApplication3
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
-            var methodName = ToCamelCase(node.Identifier.Text);
+            var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
             WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
             Visit(node.Body);
         }
@@ -1080,14 +1105,34 @@ namespace ConsoleApplication3
             base.VisitNullableType(node);
         }
 
+        public override void VisitTupleType(TupleTypeSyntax node)
+        {
+            base.VisitTupleType(node);
+        }
+
+        public override void VisitTupleElement(TupleElementSyntax node)
+        {
+            base.VisitTupleElement(node);
+        }
+
         public override void VisitOmittedTypeArgument(OmittedTypeArgumentSyntax node)
         {
             base.VisitOmittedTypeArgument(node);
         }
 
+        public override void VisitRefType(RefTypeSyntax node)
+        {
+            base.VisitRefType(node);
+        }
+
         public override void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
         {
             base.VisitParenthesizedExpression(node);
+        }
+
+        public override void VisitTupleExpression(TupleExpressionSyntax node)
+        {
+            base.VisitTupleExpression(node);
         }
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
@@ -1146,7 +1191,6 @@ namespace ConsoleApplication3
         public override void VisitLiteralExpression(LiteralExpressionSyntax node)
         {
             Write(node.ToString());
-            // base.VisitLiteralExpression(node);
         }
 
         public override void VisitMakeRefExpression(MakeRefExpressionSyntax node)
@@ -1202,6 +1246,51 @@ namespace ConsoleApplication3
         public override void VisitAttributeArgumentList(AttributeArgumentListSyntax node)
         {
             base.VisitAttributeArgumentList(node);
+        }
+
+        public override void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
+        {
+            base.VisitCasePatternSwitchLabel(node);
+        }
+
+        public override void VisitConstantPattern(ConstantPatternSyntax node)
+        {
+            base.VisitConstantPattern(node);
+        }
+
+        public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
+        {
+            base.VisitDeclarationExpression(node);
+        }
+
+        public override void VisitWhenClause(WhenClauseSyntax node)
+        {
+            base.VisitWhenClause(node);
+        }
+
+        public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
+        {
+            base.VisitDeclarationPattern(node);
+        }
+
+        public override void VisitDiscardDesignation(DiscardDesignationSyntax node)
+        {
+            base.VisitDiscardDesignation(node);
+        }
+
+        public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
+        {
+            base.VisitForEachVariableStatement(node);
+        }
+
+        public override void VisitIsPatternExpression(IsPatternExpressionSyntax node)
+        {
+            base.VisitIsPatternExpression(node);
+        }
+
+        public override void VisitThrowExpression(ThrowExpressionSyntax node)
+        {
+            base.VisitThrowExpression(node);
         }
     }
 }

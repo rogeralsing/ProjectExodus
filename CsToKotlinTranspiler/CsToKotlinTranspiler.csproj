@@ -10,8 +10,8 @@
     <ProjectGuid>{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ConsoleApplication3</RootNamespace>
-    <AssemblyName>ConsoleApplication3</AssemblyName>
+    <RootNamespace>CsToKotlinTranspiler</RootNamespace>
+    <AssemblyName>CsToKotlinTranspiler</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

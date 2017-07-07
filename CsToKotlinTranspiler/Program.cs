@@ -8,7 +8,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.MSBuild;
 
-namespace ConsoleApplication3
+namespace CsToKotlinTranspiler
 {
     class Program
     {
@@ -28,7 +28,7 @@ namespace ConsoleApplication3
                 {
                     var model = await d.GetSemanticModelAsync();
                     var root = await d.GetSyntaxRootAsync();
-                    var visitor = new KotlinTranspilerVisitor(model);
+                    var visitor = new CsToKotlinTranspiler.KotlinTranspilerVisitor(model);
                     visitor.Visit(root);
                     break;
                 }

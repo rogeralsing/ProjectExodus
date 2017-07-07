@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace ConsoleApplication3
+namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
