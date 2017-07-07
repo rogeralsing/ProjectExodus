@@ -477,6 +477,14 @@ namespace ConsoleApplication3
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
+            var si = _model.GetSymbolInfo(node);
+            var sym = si.Symbol;
+            if (sym.Kind == SymbolKind.Method)
+            {
+                var name = ToCamelCase(node.Identifier.Text);
+                Write(name);
+                return;
+            } 
             Write(node.Identifier.Text);
         }
 
@@ -877,6 +885,21 @@ namespace ConsoleApplication3
 
         public override void VisitArgumentList(ArgumentListSyntax node)
         {
+            //this is a method call where there is a single arg which is a lambda.
+            //thus we can remove the parens around it
+            if (node.Arguments.Count == 1)
+            {
+                var arg = node.Arguments.First();
+                var t = _model.GetSymbolInfo(arg.Expression);
+                var sym = t.Symbol;
+                if (sym != null && sym.ToString() == "lambda expression") //TODO: I have no idea how to check this correctly
+                {
+                    Visit(arg);
+                    return;
+                }
+
+            }
+
             Write("(");
             var first = true;
             foreach (var a in node.Arguments)

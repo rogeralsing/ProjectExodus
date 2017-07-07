@@ -54,7 +54,7 @@ namespace ConsoleApplication3
                 case "Int32":
                     return "Int";
                 case "String":
-                    return "String?";
+                    return "String";
             }
 
             return str;
