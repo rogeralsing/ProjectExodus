@@ -5,6 +5,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -893,10 +894,14 @@ namespace CsToKotlinTranspiler
             if (node.Parent is ObjectCreationExpressionSyntax parent)
             {
                 var t = _model.GetSymbolInfo(parent.Type).Symbol;
-                Write("listOf(");
-                Init();
-                Write(")");
-                return;
+                if (t.Name == nameof(List<object>))
+                {
+                    Write("listOf(");
+                    Init();
+                    Write(")");
+                    return;
+                }
+               
             }
 
             
