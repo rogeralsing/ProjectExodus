@@ -91,14 +91,14 @@ namespace CsToKotlinTranspiler
             return arg;
         }
 
-        private void WriteStart(string text)
+        private void Indent(string text)
         {
             Console.Write(GetIndent() + text);
         }
 
-        private void WriteStart()
+        private void Indent()
         {
-            Console.Write(GetIndent());
+            Write(GetIndent());
         }
 
         private void Write(string text)
@@ -106,14 +106,15 @@ namespace CsToKotlinTranspiler
             Console.Write(text);
         }
 
-        private void WriteLine()
+        private void NewLine()
         {
-            Console.WriteLine();
+            Write("\n");
         }
 
         private void WriteLine(string text)
         {
-            Console.WriteLine(GetIndent() + text);
+            Write(GetIndent() + text);
+            NewLine();
         }
 
         private string GetIndent()
@@ -128,7 +129,7 @@ namespace CsToKotlinTranspiler
 
         private static bool FieldIsReadOnly(FieldDeclarationSyntax node)
         {
-            return node.Modifiers.Any(m => m.Text == "readonly");
+            return node.Modifiers.Any(m => m.Text == "readonly" || m.Text=="const");
         }
 
         private bool IsInterfaceMethod(MethodDeclarationSyntax node)
