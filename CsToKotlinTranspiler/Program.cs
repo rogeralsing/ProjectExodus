@@ -24,7 +24,7 @@ namespace CsToKotlinTranspiler
             var sln = await ws.OpenSolutionAsync(@"C:\git\protoactor-dotnet\ProtoActor.sln");
             foreach (var p in sln.Projects)
             {
-                if (p.Name != "Node2")
+                if (p.Name != "Client")
                 {
                     continue;
                 }

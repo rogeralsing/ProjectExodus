@@ -253,7 +253,10 @@ namespace CsToKotlinTranspiler
 
         public override void VisitWhileStatement(WhileStatementSyntax node)
         {
-            base.VisitWhileStatement(node);
+            WriteStart("while (");
+            Visit(node.Condition);
+            Write(")");
+            VisitMaybeBlock(node.Statement);
         }
 
         public override void VisitDoStatement(DoStatementSyntax node)

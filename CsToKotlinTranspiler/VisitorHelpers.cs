@@ -17,11 +17,12 @@ namespace CsToKotlinTranspiler
     {
         private string GetKotlinType(TypeSyntax type)
         {
+            var ti = _model.GetTypeInfo(type);
             var si = _model.GetSymbolInfo(type);
             var s = si.Symbol;
             if (s == null)
             {
-                return type.ToString();
+                return "**unknown**"; //TODO: how does this work?
             }
             return GetKotlinType(s as ITypeSymbol);
         }
