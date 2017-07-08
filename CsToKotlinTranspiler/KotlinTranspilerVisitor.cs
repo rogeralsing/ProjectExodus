@@ -1069,7 +1069,10 @@ namespace CsToKotlinTranspiler
 
         public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
         {
-            base.VisitObjectCreationExpression(node);
+            var t = GetKotlinType(node.Type);
+            Write(t);
+            Visit(node.ArgumentList);
+
         }
 
         public override void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
