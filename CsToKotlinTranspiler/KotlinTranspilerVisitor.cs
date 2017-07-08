@@ -1153,17 +1153,24 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInterpolatedStringExpression(InterpolatedStringExpressionSyntax node)
         {
-            base.VisitInterpolatedStringExpression(node);
+            Write("\"");
+            foreach (var i in node.Contents)
+            {
+                Visit(i);
+            }
+            Write("\"");
         }
 
         public override void VisitInterpolatedStringText(InterpolatedStringTextSyntax node)
         {
-            base.VisitInterpolatedStringText(node);
+            Write(node.TextToken.Text);
         }
 
         public override void VisitInterpolation(InterpolationSyntax node)
         {
-            base.VisitInterpolation(node);
+            Write("${");
+            Visit(node.Expression);
+            Write("}");
         }
 
         public override void VisitInterpolationAlignmentClause(InterpolationAlignmentClauseSyntax node)
