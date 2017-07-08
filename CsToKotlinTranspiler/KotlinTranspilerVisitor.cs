@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -58,21 +59,28 @@ namespace CsToKotlinTranspiler
             var name = ToCamelCase(node.Identifier.Text);
             var t = GetKotlinType(node.Type);
 
+            WriteStart();
+            if (node.AccessorList != null)
+            {
+                var accessors = node.AccessorList.Accessors.Select(a => a.Keyword.Text).ToImmutableHashSet();
+                Write(accessors.Contains("set") ? "var " : "val ");
+            }
+            else
+            {
+                Write("val ");
+            }
+            Write($"{name} : {t}");
             if (node.ExpressionBody != null)
             {
-                WriteStart($"val {name} : {t}");
                 _indent++;
                 WriteLine();
                 WriteStart("get() = ");
                 Visit(node.ExpressionBody.Expression);
                 _indent--;
-                WriteLine();
+
             }
-            else
-            {
-                WriteStart($"var {name} : {t}");
-                WriteLine();
-            }
+
+            WriteLine();
         }
 
         public override void VisitTypeConstraint(TypeConstraintSyntax node)
@@ -85,7 +93,7 @@ namespace CsToKotlinTranspiler
             foreach (var v in node.Declaration.Variables)
             {
                 WriteModifiers(node.Modifiers);
-                Write(IsReadOnly(node) ? "val" : "var");
+                Write(FieldIsReadOnly(node) ? "val" : "var");
 
                 Write($" {v.Identifier} : {GetKotlinType(node.Declaration.Type)}");
                 if (v.Initializer != null)
@@ -95,11 +103,6 @@ namespace CsToKotlinTranspiler
                 }
                 WriteLine();
             }
-        }
-
-        private static bool IsReadOnly(FieldDeclarationSyntax node)
-        {
-            return node.Modifiers.Any(m => m.Text == "readonly");
         }
 
         public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
@@ -146,7 +149,9 @@ namespace CsToKotlinTranspiler
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             WriteLine();
-            WriteLine($"class {node.Identifier} {{");
+            WriteModifiers(node.Modifiers);
+            Write($"class {node.Identifier} {{");
+            WriteLine();
             _indent++;
             foreach (var m in node.Members)
             {
@@ -163,7 +168,17 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInterfaceDeclaration(InterfaceDeclarationSyntax node)
         {
-            base.VisitInterfaceDeclaration(node);
+            WriteLine();
+            WriteModifiers(node.Modifiers);
+            Write($"interface {node.Identifier} {{");
+            WriteLine();
+            _indent++;
+            foreach (var m in node.Members)
+            {
+                Visit(m);
+            }
+            _indent--;
+            WriteLine("}");
         }
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -569,24 +584,37 @@ namespace CsToKotlinTranspiler
             {
                 Visit(node.Body);
             }
-            else
+            else if (node.ExpressionBody != null)
             {
                 Visit(node.ExpressionBody);
-                WriteLine(); //should maybe be in the arrow expression visit?
+                WriteLine();
+            }
+            else
+            {
+                WriteLine(); //interface method
             }
         }
 
         private void WriteModifiers(SyntaxTokenList mods)
         {
-            var modifiers = string.Join(" ", mods.Select(m => m.ToString()).Where(m => m != "readonly").ToArray());
-            if (modifiers == "public")
+            var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
+
+            WriteStart("");
+            if (modifiers.Contains("sealed"))
             {
-                WriteStart("");
+                Write("final ");
             }
-            else
+            if (modifiers.Contains("private"))
             {
-                WriteStart(modifiers);
-                Write(" ");
+                Write("private ");
+            }
+            if (modifiers.Contains("protected"))
+            {
+                Write("protected ");
+            }
+            if (modifiers.Contains("internal"))
+            {
+                Write("internal ");
             }
         }
 

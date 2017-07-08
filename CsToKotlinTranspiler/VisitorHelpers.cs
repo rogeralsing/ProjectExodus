@@ -96,6 +96,11 @@ namespace CsToKotlinTranspiler
             Console.Write(GetIndent() + text);
         }
 
+        private void WriteStart()
+        {
+            Console.Write(GetIndent());
+        }
+
         private void Write(string text)
         {
             Console.Write(text);
@@ -119,6 +124,11 @@ namespace CsToKotlinTranspiler
         private static string ToCamelCase(string name)
         {
             return char.ToLowerInvariant(name[0]) + name.Substring(1);
+        }
+
+        private static bool FieldIsReadOnly(FieldDeclarationSyntax node)
+        {
+            return node.Modifiers.Any(m => m.Text == "readonly");
         }
     }
 }
