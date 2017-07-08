@@ -130,5 +130,25 @@ namespace CsToKotlinTranspiler
         {
             return node.Modifiers.Any(m => m.Text == "readonly");
         }
+
+        private bool IsInterfaceMethod(MethodDeclarationSyntax node)
+        {
+            var methodSymbol = _model.GetDeclaredSymbol(node);
+            bool isInterfaceMethod = methodSymbol.ContainingType
+                                                 .AllInterfaces
+                                                 .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
+                                                 .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+            return isInterfaceMethod;
+        }
+
+        private bool IsInterfaceProperty(PropertyDeclarationSyntax node)
+        {
+            var methodSymbol = _model.GetDeclaredSymbol(node);
+            bool isInterfaceMethod = methodSymbol.ContainingType
+                                                 .AllInterfaces
+                                                 .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
+                                                 .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+            return isInterfaceMethod;
+        }
     }
 }

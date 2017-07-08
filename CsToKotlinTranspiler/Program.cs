@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace CsToKotlinTranspiler
@@ -31,6 +32,11 @@ namespace CsToKotlinTranspiler
                 //}
                 foreach (var d in p.Documents)
                 {
+                    var n = d.Name.ToLowerInvariant();
+                    if (n.Contains("assemblyinfo") || n.Contains("assemblyattributes") || !n.EndsWith(".cs"))
+                    {
+                        continue;
+                    }
                     var model = await d.GetSemanticModelAsync();
                     var root = await d.GetSyntaxRootAsync();
                     var visitor = new KotlinTranspilerVisitor(model);

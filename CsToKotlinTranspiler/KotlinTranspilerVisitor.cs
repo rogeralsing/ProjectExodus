@@ -59,7 +59,11 @@ namespace CsToKotlinTranspiler
             var name = ToCamelCase(node.Identifier.Text);
             var t = GetKotlinType(node.Type);
 
-            WriteStart();
+            WriteModifiers(node.Modifiers);
+            if (IsInterfaceProperty(node))
+            {
+                Write("override ");
+            }
             if (node.AccessorList != null)
             {
                 var accessors = node.AccessorList.Accessors.Select(a => a.Keyword.Text).ToImmutableHashSet();
@@ -77,7 +81,6 @@ namespace CsToKotlinTranspiler
                 WriteStart("get() = ");
                 Visit(node.ExpressionBody.Expression);
                 _indent--;
-
             }
 
             WriteLine();
@@ -150,7 +153,29 @@ namespace CsToKotlinTranspiler
         {
             WriteLine();
             WriteModifiers(node.Modifiers);
-            Write($"class {node.Identifier} {{");
+            Write($"class {node.Identifier}");
+
+            if (node.BaseList != null)
+            {
+                Write(" : ");
+                bool first = true;
+                foreach (var t in node.BaseList.Types)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        Write(", ");
+                    }
+                    var tn = GetKotlinType(t.Type);
+                    Write(tn);
+                }
+                //   var types = node.BaseList.Types.Select(t => _model.GetSymbolInfo(t.Type)).ToArray();
+            }
+
+            Write(" {");
             WriteLine();
             _indent++;
             foreach (var m in node.Members)
@@ -571,6 +596,11 @@ namespace CsToKotlinTranspiler
             var methodName = ToCamelCase(node.Identifier.Text);
             var ret = GetKotlinType(node.ReturnType);
             WriteModifiers(node.Modifiers);
+
+            if (IsInterfaceMethod(node))
+            {
+                Write("override ");
+            }
 
             if (ret == "Unit")
             {
@@ -1072,7 +1102,6 @@ namespace CsToKotlinTranspiler
             var t = GetKotlinType(node.Type);
             Write(t);
             Visit(node.ArgumentList);
-
         }
 
         public override void VisitAnonymousObjectCreationExpression(AnonymousObjectCreationExpressionSyntax node)
