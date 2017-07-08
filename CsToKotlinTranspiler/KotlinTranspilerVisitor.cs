@@ -55,7 +55,24 @@ namespace CsToKotlinTranspiler
 
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
-            base.VisitPropertyDeclaration(node);
+            var name = ToCamelCase(node.Identifier.Text);
+            var t = GetKotlinType(node.Type);
+
+            if (node.ExpressionBody != null)
+            {
+                WriteStart($"val {name} : {t}");
+                _indent++;
+                WriteLine();
+                WriteStart("get() = ");
+                Visit(node.ExpressionBody.Expression);
+                _indent--;
+                WriteLine();
+            }
+            else
+            {
+                WriteStart($"var {name} : {t}");
+                WriteLine();
+            }
         }
 
         public override void VisitTypeConstraint(TypeConstraintSyntax node)
@@ -65,8 +82,24 @@ namespace CsToKotlinTranspiler
 
         public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
-            //TODO: AdditionalText initializer
-            WriteLine($"var {node.Declaration.Variables.First().Identifier} : {GetKotlinType(node.Declaration.Type)}");
+            foreach (var v in node.Declaration.Variables)
+            {
+                WriteModifiers(node.Modifiers);
+                Write(IsReadOnly(node) ? "val" : "var");
+
+                Write($" {v.Identifier} : {GetKotlinType(node.Declaration.Type)}");
+                if (v.Initializer != null)
+                {
+                    Write(" = ");
+                    Visit(v.Initializer.Value);
+                }
+                WriteLine();
+            }
+        }
+
+        private static bool IsReadOnly(FieldDeclarationSyntax node)
+        {
+            return node.Modifiers.Any(m => m.Text == "readonly");
         }
 
         public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
@@ -357,7 +390,7 @@ namespace CsToKotlinTranspiler
                 var c = node.Labels.First() as CasePatternSwitchLabelSyntax;
                 var d = c.Pattern as DeclarationPatternSyntax;
                 var v = d.Designation as SingleVariableDesignationSyntax;
-                
+
                 var t = GetKotlinType(d.Type);
                 Write(t);
                 Write(" -> {");
@@ -520,15 +553,17 @@ namespace CsToKotlinTranspiler
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
-            var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
+            var methodName = ToCamelCase(node.Identifier.Text);
             var ret = GetKotlinType(node.ReturnType);
+            WriteModifiers(node.Modifiers);
+
             if (ret == "Unit")
             {
-                WriteStart($"fun {methodName} ({arg})");
+                Write($"fun {methodName} ({arg})");
             }
             else
             {
-                WriteStart($"fun {methodName} ({arg}) : {ret}");
+                Write($"fun {methodName} ({arg}) : {ret}");
             }
             if (node.Body != null)
             {
@@ -538,6 +573,20 @@ namespace CsToKotlinTranspiler
             {
                 Visit(node.ExpressionBody);
                 WriteLine(); //should maybe be in the arrow expression visit?
+            }
+        }
+
+        private void WriteModifiers(SyntaxTokenList mods)
+        {
+            var modifiers = string.Join(" ", mods.Select(m => m.ToString()).Where(m => m != "readonly").ToArray());
+            if (modifiers == "public")
+            {
+                WriteStart("");
+            }
+            else
+            {
+                WriteStart(modifiers);
+                Write(" ");
             }
         }
 
@@ -584,7 +633,6 @@ namespace CsToKotlinTranspiler
                 var name = node.Identifier.Text;
                 Write(name);
             }
-            
         }
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
@@ -966,7 +1014,7 @@ namespace CsToKotlinTranspiler
                     Visit(e);
                 }
             }
-            
+
             if (node.Parent is ObjectCreationExpressionSyntax parent)
             {
                 var t = _model.GetSymbolInfo(parent.Type).Symbol;
@@ -984,10 +1032,8 @@ namespace CsToKotlinTranspiler
                     Write("}");
                     return;
                 }
-               
             }
 
-            
             Write("arrayOf(");
             Init(", ");
             Write(")");
@@ -1051,7 +1097,6 @@ namespace CsToKotlinTranspiler
                     Visit(arg);
                     return;
                 }
-
             }
 
             Write("(");

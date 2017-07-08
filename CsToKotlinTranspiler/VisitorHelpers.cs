@@ -56,6 +56,8 @@ namespace CsToKotlinTranspiler
             {
                 case "Void":
                     return "Unit";
+                case "Object":
+                    return "Any";
                 case "Int32":
                     return "Int";
                 case "String":

@@ -4,9 +4,9 @@
 //   </copyright>
 // -----------------------------------------------------------------------
 
+using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CsToKotlinTranspiler
 {
@@ -21,22 +21,29 @@ namespace CsToKotlinTranspiler
         private static async Task Run()
         {
             var ws = MSBuildWorkspace.Create();
-            var sln = await ws.OpenSolutionAsync(@"C:\git\protoactor-dotnet\ProtoActor.sln");
+       //     ws.WorkspaceFailed += Ws_WorkspaceFailed;
+            var sln = await ws.OpenSolutionAsync(@"C:\Users\rojo01\Documents\Visual Studio 2017\Projects\Proto.Mailbox\Proto.Mailbox.sln");
             foreach (var p in sln.Projects)
             {
-                if (p.Name != "Client")
-                {
-                    continue;
-                }
+                //if (p.Name != "Proto.Mailbox")
+                //{
+                //    continue;
+                //}
                 foreach (var d in p.Documents)
                 {
                     var model = await d.GetSemanticModelAsync();
                     var root = await d.GetSyntaxRootAsync();
                     var visitor = new KotlinTranspilerVisitor(model);
                     visitor.Visit(root);
-                    break;
+                 //   break;
                 }
             }
+        }
+
+        private static void Ws_WorkspaceFailed(object sender, Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs e)
+        {
+            Console.WriteLine(e.Diagnostic.Message);
+         //   throw new NotImplementedException();
         }
     }
 }
