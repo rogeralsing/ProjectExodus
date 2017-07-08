@@ -26,10 +26,6 @@ namespace CsToKotlinTranspiler
             var sln = await ws.OpenSolutionAsync(@"C:\Users\rojo01\Documents\Visual Studio 2017\Projects\Proto.Mailbox\Proto.Mailbox.sln");
             foreach (var p in sln.Projects)
             {
-                //if (p.Name != "Proto.Mailbox")
-                //{
-                //    continue;
-                //}
                 foreach (var d in p.Documents)
                 {
                     var n = d.Name.ToLowerInvariant();
@@ -41,7 +37,6 @@ namespace CsToKotlinTranspiler
                     var root = await d.GetSyntaxRootAsync();
                     var visitor = new KotlinTranspilerVisitor(model);
                     visitor.Visit(root);
-                 //   break;
                 }
             }
         }

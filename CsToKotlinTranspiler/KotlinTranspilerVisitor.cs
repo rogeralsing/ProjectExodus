@@ -178,7 +178,21 @@ namespace CsToKotlinTranspiler
             Write(" {");
             WriteLine();
             _indent++;
-            foreach (var m in node.Members)
+            var statics = node.Members.Where(mm => _model.GetDeclaredSymbol(mm)?.IsStatic == true).ToList();
+            var instance = node.Members.Where(mm => _model.GetDeclaredSymbol(mm)?.IsStatic != true).ToList();
+
+            if (statics.Any())
+            {
+                WriteLine("class object {");
+                _indent++;
+                foreach (var m in statics)
+                {
+                    Visit(m);
+                }
+                _indent--;
+                WriteLine("}");
+            }
+            foreach (var m in instance)
             {
                 Visit(m);
             }
@@ -467,7 +481,15 @@ namespace CsToKotlinTranspiler
 
         public override void VisitTryStatement(TryStatementSyntax node)
         {
-            base.VisitTryStatement(node);
+            WriteStart("try ");
+            Visit(node.Block);
+            foreach (var c in node.Catches)
+            {
+                var v = c.Declaration.Identifier.Text;
+                var t = GetKotlinType(c.Declaration.Type);
+                WriteStart($"catch ({v} : {t})");
+                Visit(c.Block);
+            }
         }
 
         public override void VisitCatchClause(CatchClauseSyntax node)
