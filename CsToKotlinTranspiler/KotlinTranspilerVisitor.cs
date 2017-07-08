@@ -939,7 +939,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInitializerExpression(InitializerExpressionSyntax node)
         {
-            void Init()
+            void Init(string sep)
             {
                 var first = true;
                 foreach (var e in node.Expressions)
@@ -950,7 +950,7 @@ namespace CsToKotlinTranspiler
                     }
                     else
                     {
-                        Write(", ");
+                        Write(sep);
                     }
                     Visit(e);
                 }
@@ -962,8 +962,15 @@ namespace CsToKotlinTranspiler
                 if (t.Name == nameof(List<object>))
                 {
                     Write("listOf(");
-                    Init();
+                    Init(", ");
                     Write(")");
+                    return;
+                }
+                else
+                {
+                    Write("().apply {");
+                    Init("; ");
+                    Write("}");
                     return;
                 }
                
@@ -971,7 +978,7 @@ namespace CsToKotlinTranspiler
 
             
             Write("arrayOf(");
-            Init();
+            Init(", ");
             Write(")");
         }
 
@@ -992,7 +999,21 @@ namespace CsToKotlinTranspiler
 
         public override void VisitBracketedArgumentList(BracketedArgumentListSyntax node)
         {
-            base.VisitBracketedArgumentList(node);
+            Write("[");
+            bool first = true;
+            foreach (var a in node.Arguments)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    Write(", ");
+                }
+                Visit(a);
+            }
+            Write("]");
         }
 
         public override void VisitArgument(ArgumentSyntax node)
