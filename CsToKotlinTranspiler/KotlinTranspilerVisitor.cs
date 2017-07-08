@@ -266,7 +266,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-            base.VisitForStatement(node);
+            WriteStart("for (");
+            Write(")");
+            VisitMaybeBlock(node.Statement);
         }
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)
@@ -334,10 +336,10 @@ namespace CsToKotlinTranspiler
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            WriteStart("when (");
+            WriteStart("val tmp = ");
             Visit(node.Expression);
-            Write(") {");
             WriteLine();
+            WriteLine("when (tmp) {");
             _indent++;
             foreach (var s in node.Sections)
             {
@@ -351,8 +353,17 @@ namespace CsToKotlinTranspiler
         {
             if (node.Statements.Count > 1)
             {
-                WriteLine(" -> {");
+                WriteStart("is ");
+                var c = node.Labels.First() as CasePatternSwitchLabelSyntax;
+                var d = c.Pattern as DeclarationPatternSyntax;
+                var v = d.Designation as SingleVariableDesignationSyntax;
+                
+                var t = GetKotlinType(d.Type);
+                Write(t);
+                Write(" -> {");
+                WriteLine();
                 _indent++;
+                WriteLine($"val {v.Identifier.Text} = tmp");
                 foreach (var s in node.Statements)
                 {
                     Visit(s);
@@ -959,7 +970,7 @@ namespace CsToKotlinTranspiler
             if (node.Parent is ObjectCreationExpressionSyntax parent)
             {
                 var t = _model.GetSymbolInfo(parent.Type).Symbol;
-                if (t.Name == nameof(List<object>))
+                if (t?.Name == nameof(List<object>))
                 {
                     Write("listOf(");
                     Init(", ");
