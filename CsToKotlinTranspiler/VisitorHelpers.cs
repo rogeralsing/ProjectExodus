@@ -56,6 +56,8 @@ namespace CsToKotlinTranspiler
             {
                 case "Void":
                     return "Unit";
+                case "TimeSpan":
+                    return "Duration";
                 case "Object":
                     return "Any";
                 case "Int32":

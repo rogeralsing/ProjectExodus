@@ -157,7 +157,7 @@ namespace CsToKotlinTranspiler
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
             NewLine();
-            WriteModifiers(node.Modifiers);
+            WriteClassModifiers(node.Modifiers);
             Write($"class {node.Identifier}");
 
             if (node.BaseList != null)
@@ -183,12 +183,24 @@ namespace CsToKotlinTranspiler
             Write(" {");
             NewLine();
             _indent++;
-            var statics = node.Members.Where(mm => _model.GetDeclaredSymbol(mm)?.IsStatic == true).ToList();
-            var instance = node.Members.Where(mm => _model.GetDeclaredSymbol(mm)?.IsStatic != true).ToList();
+            var statics = node.Members.Where(mm =>
+            {
+                if (mm is FieldDeclarationSyntax field)
+                {
+                    //const fields are companion fields
+                    if (field.Modifiers.Any(mod => mod.Text == "const"))
+                    {
+                        return true;
+                    }
+                }
+                var mmm = _model.GetDeclaredSymbol(mm);
+                return mmm?.IsStatic == true;
+            }).ToList();
+            var instance = node.Members.Except(statics).ToList();
 
             if (statics.Any())
             {
-                WriteLine("class object {");
+                WriteLine("companion object {");
                 _indent++;
                 foreach (var m in statics)
                 {
@@ -335,8 +347,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitThrowStatement(ThrowStatementSyntax node)
         {
-            Write("throw");
+            Indent("throw ");
             Visit(node.Expression);
+            NewLine();
         }
 
         public override void VisitYieldStatement(YieldStatementSyntax node)
@@ -430,8 +443,9 @@ namespace CsToKotlinTranspiler
             }
             else
             {
-                NewLine();
+           
                 _indent++;
+                NewLine();
                 Visit(node);
                 _indent--;
             }
@@ -620,7 +634,15 @@ namespace CsToKotlinTranspiler
                     Visit(node.Expression);
                     Write(".");
                     var name = node.Name.ToString();
-                    name = KotlinTranspilerVisitor.ToCamelCase(name);
+                    if (sym.Kind == SymbolKind.Field)
+                    {
+                        //pass
+                    }
+                    else
+                    {
+                        name = ToCamelCase(name);
+                    }
+                   
                     Write(name);
                     break;
             }
@@ -668,15 +690,35 @@ namespace CsToKotlinTranspiler
             }
         }
 
+        private void WriteClassModifiers(SyntaxTokenList mods)
+        {
+            var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
+
+            Indent();
+            if (!modifiers.Contains("sealed") && !modifiers.Contains("abstract"))
+            {
+                Write("open ");
+            }
+            if (modifiers.Contains("private"))
+            {
+                Write("private ");
+            }
+            if (modifiers.Contains("protected"))
+            {
+                Write("protected ");
+            }
+            if (modifiers.Contains("internal"))
+            {
+                Write("internal ");
+            }
+        }
+
         private void WriteModifiers(SyntaxTokenList mods)
         {
             var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
 
             Indent();
-            if (modifiers.Contains("sealed"))
-            {
-                Write("final ");
-            }
+
             if (modifiers.Contains("private"))
             {
                 Write("private ");
