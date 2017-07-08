@@ -21,9 +21,13 @@ namespace CsToKotlinTranspiler
         private static async Task Run()
         {
             var ws = MSBuildWorkspace.Create();
-            var sln = await ws.OpenSolutionAsync(@"C:\git\ProjectExodus\CsToKotlinTranspiler.sln");
+            var sln = await ws.OpenSolutionAsync(@"C:\git\protoactor-dotnet\ProtoActor.sln");
             foreach (var p in sln.Projects)
             {
+                if (p.Name != "Node2")
+                {
+                    continue;
+                }
                 foreach (var d in p.Documents)
                 {
                     var model = await d.GetSemanticModelAsync();

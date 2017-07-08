@@ -19,6 +19,10 @@ namespace CsToKotlinTranspiler
         {
             var si = _model.GetSymbolInfo(type);
             var s = si.Symbol;
+            if (s == null)
+            {
+                return type.ToString();
+            }
             return GetKotlinType(s as ITypeSymbol);
         }
 

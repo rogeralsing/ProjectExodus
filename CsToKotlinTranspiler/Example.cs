@@ -13,6 +13,7 @@ namespace CsToKotlinTranspiler
         public void Main()
         {
             var i = 1.ToString();
+            var (j, k) = (1, 2);
             var res = Console.ReadLine();
             Console.WriteLine("You wrote " + res);
         }

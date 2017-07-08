@@ -65,8 +65,8 @@ namespace CsToKotlinTranspiler
 
         public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
+            //TODO: AdditionalText initializer
             WriteLine($"var {node.Declaration.Variables.First().Identifier} : {GetKotlinType(node.Declaration.Type)}");
-            base.VisitFieldDeclaration(node);
         }
 
         public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
@@ -115,7 +115,10 @@ namespace CsToKotlinTranspiler
             WriteLine();
             WriteLine($"class {node.Identifier} {{");
             _indent++;
-            base.VisitClassDeclaration(node);
+            foreach (var m in node.Members)
+            {
+                Visit(m);
+            }
             _indent--;
             WriteLine("}");
         }
@@ -182,7 +185,21 @@ namespace CsToKotlinTranspiler
 
         public override void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
         {
-            base.VisitParenthesizedVariableDesignation(node);
+            Write("(");
+            bool first = true;
+            foreach (SingleVariableDesignationSyntax v in node.Variables)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    Write(", ");
+                }
+                Write(v.Identifier.Text);
+            }
+            Write(")");
         }
 
         public override void VisitExpressionStatement(ExpressionStatementSyntax node)
@@ -220,7 +237,7 @@ namespace CsToKotlinTranspiler
         public override void VisitReturnStatement(ReturnStatementSyntax node)
         {
             WriteStart("return ");
-            base.VisitReturnStatement(node);
+            Visit(node.Expression);
             WriteLine();
         }
 
@@ -314,12 +331,41 @@ namespace CsToKotlinTranspiler
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
         {
-            base.VisitSwitchStatement(node);
+            WriteStart("when (");
+            Visit(node.Expression);
+            Write(") {");
+            WriteLine();
+            _indent++;
+            foreach (var s in node.Sections)
+            {
+                Visit(s);
+            }
+            _indent--;
+            WriteLine("}");
         }
 
         public override void VisitSwitchSection(SwitchSectionSyntax node)
         {
-            base.VisitSwitchSection(node);
+            if (node.Statements.Count > 1)
+            {
+                WriteLine(" -> {");
+                _indent++;
+                foreach (var s in node.Statements)
+                {
+                    Visit(s);
+                }
+                _indent--;
+                WriteLine("}");
+            }
+            else
+            {
+                WriteStart(" -> ");
+                var i = _indent;
+                _indent = 0;
+                Visit(node.Statements.First());
+                _indent = i;
+                WriteLine();
+            }
         }
 
         public override void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
@@ -461,7 +507,15 @@ namespace CsToKotlinTranspiler
         {
             var arg = GetArgList(node.ParameterList);
             var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
-            WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
+            var ret = GetKotlinType(node.ReturnType);
+            if (ret == "Unit")
+            {
+                WriteStart($"fun {methodName} ({arg})");
+            }
+            else
+            {
+                WriteStart($"fun {methodName} ({arg}) : {ret}");
+            }
             if (node.Body != null)
             {
                 Visit(node.Body);
@@ -502,13 +556,21 @@ namespace CsToKotlinTranspiler
         {
             var si = _model.GetSymbolInfo(node);
             var sym = si.Symbol;
-            if (sym.Kind == SymbolKind.Method)
+            if (sym == null)
             {
-                var name = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
+                Write(node.Identifier.Text);
+            }
+            else if (sym.Kind == SymbolKind.Method)
+            {
+                var name = ToCamelCase(node.Identifier.Text);
                 Write(name);
-                return;
-            } 
-            Write(node.Identifier.Text);
+            }
+            else
+            {
+                var name = node.Identifier.Text;
+                Write(name);
+            }
+            
         }
 
         public override void VisitQualifiedName(QualifiedNameSyntax node)
@@ -1113,8 +1175,16 @@ namespace CsToKotlinTranspiler
         public override void VisitLocalFunctionStatement(LocalFunctionStatementSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
-            var methodName = KotlinTranspilerVisitor.ToCamelCase(node.Identifier.Text);
-            WriteStart($"fun {methodName} ({arg}) : {GetKotlinType(node.ReturnType)}");
+            var methodName = ToCamelCase(node.Identifier.Text);
+            var ret = GetKotlinType(node.ReturnType);
+            if (ret == "Unit")
+            {
+                WriteStart($"fun {methodName} ({arg})");
+            }
+            else
+            {
+                WriteStart($"fun {methodName} ({arg}) : {ret}");
+            }
             if (node.Body != null)
             {
                 Visit(node.Body);
@@ -1221,7 +1291,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitThisExpression(ThisExpressionSyntax node)
         {
-            base.VisitThisExpression(node);
+            Write("this");
         }
 
         public override void VisitBaseExpression(BaseExpressionSyntax node)
@@ -1302,7 +1372,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
-            base.VisitDeclarationExpression(node);
+            Write("var ");
+            Visit(node.Designation);
+            //base.VisitDeclarationExpression(node);
         }
 
         public override void VisitWhenClause(WhenClauseSyntax node)
