@@ -31,7 +31,7 @@ namespace CsToKotlinTranspiler
             var s = si.Symbol;
             if (s == null)
             {
-                Debugger.Break();
+            //    Debugger.Break();
                 var d = _model.GetDeclaredSymbol(type);
                 var ti = _model.GetTypeInfo(type);
                 if (ti.Type?.Kind == SymbolKind.ErrorType)
