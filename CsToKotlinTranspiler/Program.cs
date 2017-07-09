@@ -4,11 +4,12 @@
 //   </copyright>
 // -----------------------------------------------------------------------
 
-using Microsoft.CodeAnalysis.MSBuild;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CsToKotlinTranspiler
 {
@@ -23,10 +24,14 @@ namespace CsToKotlinTranspiler
         private static async Task Run()
         {
             var ws = MSBuildWorkspace.Create();
-            var output = @"C:\tmp\kot\src";
-            var sln = await ws.OpenSolutionAsync(@"C:\Users\rojo01\Documents\Visual Studio 2017\Projects\Proto.Mailbox\Proto.Mailbox.sln");
+            var output = @"C:\git\ProjectExodus\demooutput";
+            var sln = await ws.OpenSolutionAsync(@"C:\git\ProjectExodus\democode\DemoCode.sln");
+
+            var compilations = await Task.WhenAll(sln.Projects.Select(x => x.GetCompilationAsync()));
+
             foreach (var p in sln.Projects)
             {
+                var c = await p.GetCompilationAsync();
                 foreach (var d in p.Documents)
                 {
                     var n = d.Name.ToLowerInvariant();
@@ -34,8 +39,13 @@ namespace CsToKotlinTranspiler
                     {
                         continue;
                     }
+
+                    
                     var model = await d.GetSemanticModelAsync();
+                    
                     var root = await d.GetSyntaxRootAsync();
+                    
+
                     var visitor = new KotlinTranspilerVisitor(model);
                     var res = visitor.Run(root);
                     var fileName = Path.ChangeExtension(d.Name, ".kt");
@@ -45,10 +55,10 @@ namespace CsToKotlinTranspiler
             }
         }
 
-        private static void Ws_WorkspaceFailed(object sender, Microsoft.CodeAnalysis.WorkspaceDiagnosticEventArgs e)
+        private static void Ws_WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
         {
             Console.WriteLine(e.Diagnostic.Message);
-         //   throw new NotImplementedException();
+            //   throw new NotImplementedException();
         }
     }
 }

@@ -5,18 +5,48 @@ VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinTranspiler", "CsToKotlinTranspiler\CsToKotlinTranspiler.csproj", "{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Mailbox", "democode\Proto.Mailbox\Proto.Mailbox.csproj", "{D4EE4171-560A-488D-97E3-BEC46722747A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Actor", "democode\Proto.Actor\Proto.Actor.csproj", "{FC81CECE-10D2-480D-AAEF-5B29C6481810}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "DemoCode", "DemoCode", "{D710A65A-4B69-404F-B2F4-8FCD0720101F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
 		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|Any CPU.ActiveCfg = Debug|x86
 		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|x86.ActiveCfg = Debug|x86
 		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|x86.Build.0 = Debug|x86
+		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|Any CPU.ActiveCfg = Release|x86
 		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|x86.ActiveCfg = Release|x86
 		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|x86.Build.0 = Release|x86
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Debug|x86.Build.0 = Debug|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Release|x86.ActiveCfg = Release|Any CPU
+		{D4EE4171-560A-488D-97E3-BEC46722747A}.Release|x86.Build.0 = Release|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|x86.Build.0 = Debug|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|x86.ActiveCfg = Release|Any CPU
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D4EE4171-560A-488D-97E3-BEC46722747A} = {D710A65A-4B69-404F-B2F4-8FCD0720101F}
+		{FC81CECE-10D2-480D-AAEF-5B29C6481810} = {D710A65A-4B69-404F-B2F4-8FCD0720101F}
 	EndGlobalSection
 EndGlobal

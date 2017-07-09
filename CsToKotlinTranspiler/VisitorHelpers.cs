@@ -31,7 +31,14 @@ namespace CsToKotlinTranspiler
             var s = si.Symbol;
             if (s == null)
             {
-                return "**unknown**"; //TODO: how does this work?
+                var d = _model.GetDeclaredSymbol(type);
+                var ti = _model.GetTypeInfo(type);
+                if (ti.Type?.Kind == SymbolKind.ErrorType)
+                {
+                    return "**error type**";
+                }
+
+                return "**unknown type**"; //TODO: how does this work?
             }
             return GetKotlinType(s as ITypeSymbol);
         }
@@ -179,7 +186,13 @@ namespace CsToKotlinTranspiler
         private string GetKotlinDefaultValue(TypeSyntax type)
         {
             var si = _model.GetSymbolInfo(type);
+
+
             var s = si.Symbol;
+            if (s == null)
+            {
+                return null;
+            }
             var str = s.Name;
             switch (str)
             {

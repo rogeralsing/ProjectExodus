@@ -306,7 +306,7 @@ namespace CsToKotlinTranspiler
         {
             Write("(");
             bool first = true;
-            foreach (SingleVariableDesignationSyntax v in node.Variables)
+            foreach (var v in node.Variables)
             {
                 if (first)
                 {
@@ -316,7 +316,16 @@ namespace CsToKotlinTranspiler
                 {
                     Write(", ");
                 }
-                Write(v.Identifier.Text);
+
+                if (v is SingleVariableDesignationSyntax single)
+                {
+
+                    Write(single.Identifier.Text);
+                }
+                if (v is DiscardDesignationSyntax _)
+                {
+                    Write("_");
+                }
             }
             Write(")");
         }
@@ -491,7 +500,7 @@ namespace CsToKotlinTranspiler
             }
             else
             {
-           
+
                 _indent++;
                 NewLine();
                 Visit(node);
@@ -516,19 +525,40 @@ namespace CsToKotlinTranspiler
 
         public override void VisitSwitchSection(SwitchSectionSyntax node)
         {
-            if (node.Statements.Count > 1)
+
+            if (node.Labels.First() is CasePatternSwitchLabelSyntax)
             {
                 Indent("is ");
-                var c = node.Labels.First() as CasePatternSwitchLabelSyntax;
-                var d = c.Pattern as DeclarationPatternSyntax;
-                var v = d.Designation as SingleVariableDesignationSyntax;
 
-                var t = GetKotlinType(d.Type);
-                Write(t);
+                bool first = true;
+                foreach (CasePatternSwitchLabelSyntax c in node.Labels)
+                {
+                    if (first)
+                    {
+                        first = false;
+                    }
+                    else
+                    {
+                        Write(", ");
+                    }
+                    var d = c.Pattern as DeclarationPatternSyntax;
+                    var v = d.Designation as SingleVariableDesignationSyntax;
+
+                    var t = GetKotlinType(d.Type);
+                    Write(t);
+                }
+
                 Write(" -> {");
                 NewLine();
                 _indent++;
-                WriteLine($"val {v.Identifier.Text} = tmp");
+                foreach (CasePatternSwitchLabelSyntax c in node.Labels)
+                {
+                    var d = c.Pattern as DeclarationPatternSyntax;
+                    if (d.Designation is SingleVariableDesignationSyntax v)
+                    {
+                        WriteLine($"val {v.Identifier.Text} = tmp");
+                    }
+                }
                 foreach (var s in node.Statements)
                 {
                     Visit(s);
@@ -538,14 +568,15 @@ namespace CsToKotlinTranspiler
             }
             else
             {
-                Indent(" -> ");
-                var i = _indent;
-                _indent = 0;
-                Visit(node.Statements.First());
-                _indent = i;
-                NewLine();
+                //TODO: implement
             }
+
+
+            //case body
+           
+
         }
+
 
         public override void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
         {
@@ -601,6 +632,11 @@ namespace CsToKotlinTranspiler
         {
             var methodName = node.Name.ToString();
             var sym = _model.GetSymbolInfo(node).Symbol;
+            if (sym == null)
+            {
+                Write($"**failure in {nameof(VisitMemberAccessExpression)}**");
+                return;
+            }
             var containingTypeName = sym?.ContainingType?.Name;
 
             switch (containingTypeName)
