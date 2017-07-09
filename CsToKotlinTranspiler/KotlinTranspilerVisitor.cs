@@ -383,14 +383,8 @@ namespace CsToKotlinTranspiler
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             var b = node.Statement as BlockSyntax;
-            WriteLine("do {");
-            _indent++;
-            foreach (var s in b.Statements)
-            {
-                Visit(s);
-            }
-            _indent--;
-            Indent("}");
+            WriteLine("do ");
+            VisitInlineBlock(b);
             if (node.Condition != null)
             {
                 Write(" while (");
@@ -458,16 +452,14 @@ namespace CsToKotlinTranspiler
             {
                 return;
             }
-            Write(" else");
-
             if (node.Else.Statement is IfStatementSyntax elseif)
             {
-                Write(" ");
+                Write(" else ");
                 VisitInlineIfStatement(elseif);
             }
             else
             {
-
+                Write(" else");
                 VisitMaybeBlock(node.Else.Statement);
             }
         }
@@ -480,7 +472,6 @@ namespace CsToKotlinTranspiler
             }
             else
             {
-
                 _indent++;
                 NewLine();
                 Visit(node);
