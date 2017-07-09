@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -19,6 +20,8 @@ namespace CsToKotlinTranspiler
         private readonly StringBuilder _sb = new StringBuilder();
         
 
+
+        //foooo
         private string GetKotlinType(TypeSyntax type)
         {
             if (type is ArrayTypeSyntax arr)
@@ -31,6 +34,7 @@ namespace CsToKotlinTranspiler
             var s = si.Symbol;
             if (s == null)
             {
+                Debugger.Break();
                 var d = _model.GetDeclaredSymbol(type);
                 var ti = _model.GetTypeInfo(type);
                 if (ti.Type?.Kind == SymbolKind.ErrorType)
