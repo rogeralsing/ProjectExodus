@@ -6,6 +6,7 @@
 
 using Microsoft.CodeAnalysis.MSBuild;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -22,7 +23,7 @@ namespace CsToKotlinTranspiler
         private static async Task Run()
         {
             var ws = MSBuildWorkspace.Create();
-       //     ws.WorkspaceFailed += Ws_WorkspaceFailed;
+            var output = @"C:\tmp\kot\src";
             var sln = await ws.OpenSolutionAsync(@"C:\Users\rojo01\Documents\Visual Studio 2017\Projects\Proto.Mailbox\Proto.Mailbox.sln");
             foreach (var p in sln.Projects)
             {
@@ -37,7 +38,9 @@ namespace CsToKotlinTranspiler
                     var root = await d.GetSyntaxRootAsync();
                     var visitor = new KotlinTranspilerVisitor(model);
                     var res = visitor.Run(root);
-                    
+                    var fileName = Path.ChangeExtension(d.Name, ".kt");
+                    var outputFile = Path.Combine(output, fileName);
+                    File.WriteAllText(outputFile, res);
                 }
             }
         }

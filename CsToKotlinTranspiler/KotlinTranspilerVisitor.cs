@@ -444,10 +444,48 @@ namespace CsToKotlinTranspiler
 
         public override void VisitIfStatement(IfStatementSyntax node)
         {
-            Indent("if (");
+            Indent();
+            VisitInlineIfStatement(node);
+        }
+
+        public void VisitInlineIfStatement(IfStatementSyntax node)
+        {
+            Write("if (");
             Visit(node.Condition);
             Write(")");
-            VisitMaybeBlock(node.Statement);
+            VisitMaybeInlineBlock(node.Statement);
+            if (node.Else == null)
+            {
+                return;
+            }
+            Write(" else");
+
+            if (node.Else.Statement is IfStatementSyntax elseif)
+            {
+                Write(" ");
+                VisitInlineIfStatement(elseif);
+            }
+            else
+            {
+
+                VisitMaybeBlock(node.Else.Statement);
+            }
+        }
+
+        private void VisitMaybeInlineBlock(StatementSyntax node)
+        {
+            if (node is BlockSyntax block)
+            {
+                VisitInlineBlock(block);
+            }
+            else
+            {
+
+                _indent++;
+                NewLine();
+                Visit(node);
+                _indent--;
+            }
         }
 
         private void VisitMaybeBlock(StatementSyntax node)
@@ -1411,6 +1449,17 @@ namespace CsToKotlinTranspiler
             _indent--;
             WriteLine("}");
         }
+
+        public void VisitInlineBlock(BlockSyntax node)
+        {
+            Write(" {");
+            NewLine();
+            _indent++;
+            base.VisitBlock(node);
+            _indent--;
+            Indent("}");
+        }
+
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
