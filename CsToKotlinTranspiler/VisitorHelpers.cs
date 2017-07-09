@@ -19,9 +19,6 @@ namespace CsToKotlinTranspiler
     {
         private readonly StringBuilder _sb = new StringBuilder();
         
-
-
-        //foooo
         private string GetKotlinType(TypeSyntax type)
         {
             if (type is ArrayTypeSyntax arr)
