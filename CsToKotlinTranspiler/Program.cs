@@ -23,9 +23,14 @@ namespace CsToKotlinTranspiler
 
         private static async Task Run()
         {
+            var myPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+
+            var dir = System.IO.Path.GetDirectoryName(myPath);
+            var srcPath = Path.Combine(dir, @"..\..\..");
+
             var ws = MSBuildWorkspace.Create();
-            var output = @"C:\git\ProjectExodus\demooutput";
-            var sln = await ws.OpenSolutionAsync(@"C:\git\ProjectExodus\democode\DemoCode.sln");
+            var output = srcPath + @"\demooutput";
+            var sln = await ws.OpenSolutionAsync(srcPath + @"\democode\DemoCode.sln");
 
             var compilations = await Task.WhenAll(sln.Projects.Select(x => x.GetCompilationAsync()));
 
@@ -40,11 +45,9 @@ namespace CsToKotlinTranspiler
                         continue;
                     }
 
-                    
                     var model = await d.GetSemanticModelAsync();
-                    
+
                     var root = await d.GetSyntaxRootAsync();
-                    
 
                     var visitor = new KotlinTranspilerVisitor(model);
                     var res = visitor.Run(root);
