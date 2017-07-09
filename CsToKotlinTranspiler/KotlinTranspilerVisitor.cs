@@ -413,21 +413,25 @@ namespace CsToKotlinTranspiler
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
+            //Not supported
             base.VisitUsingStatement(node);
         }
 
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
+            //Not supported
             base.VisitFixedStatement(node);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
+            //Not supported
             base.VisitCheckedStatement(node);
         }
 
         public override void VisitUnsafeStatement(UnsafeStatementSyntax node)
         {
+            //Not supported
             base.VisitUnsafeStatement(node);
         }
 
@@ -493,11 +497,6 @@ namespace CsToKotlinTranspiler
                 Visit(node);
                 _indent--;
             }
-        }
-
-        public override void VisitElseClause(ElseClauseSyntax node)
-        {
-            base.VisitElseClause(node);
         }
 
         public override void VisitSwitchStatement(SwitchStatementSyntax node)
@@ -571,33 +570,10 @@ namespace CsToKotlinTranspiler
             }
         }
 
-        public override void VisitCatchClause(CatchClauseSyntax node)
-        {
-            base.VisitCatchClause(node);
-        }
-
-        public override void VisitCatchDeclaration(CatchDeclarationSyntax node)
-        {
-            base.VisitCatchDeclaration(node);
-        }
-
-        public override void VisitCatchFilterClause(CatchFilterClauseSyntax node)
-        {
-            base.VisitCatchFilterClause(node);
-        }
-
-        public override void VisitFinallyClause(FinallyClauseSyntax node)
-        {
-            base.VisitFinallyClause(node);
-        }
-
-        public override void VisitCompilationUnit(CompilationUnitSyntax node)
-        {
-            base.VisitCompilationUnit(node);
-        }
 
         public override void VisitExternAliasDirective(ExternAliasDirectiveSyntax node)
         {
+            //not supported
             base.VisitExternAliasDirective(node);
         }
 
@@ -615,15 +591,6 @@ namespace CsToKotlinTranspiler
         {
             base.VisitElementAccessExpression(node);
         }
-
-        //public override void VisitIdentifierName(IdentifierNameSyntax node)
-        //{
-        //    if (node.Identifier.ToString() == "ToLowerInvariant")
-        //    {
-
-        //    }
-        //    base.VisitIdentifierName(node);
-        //}
 
         public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
         {
@@ -790,25 +757,6 @@ namespace CsToKotlinTranspiler
             base.VisitOperatorDeclaration(node);
         }
 
-        public override void VisitToken(SyntaxToken token)
-        {
-            base.VisitToken(token);
-        }
-
-        public override void VisitLeadingTrivia(SyntaxToken token)
-        {
-            base.VisitLeadingTrivia(token);
-        }
-
-        public override void VisitTrailingTrivia(SyntaxToken token)
-        {
-            base.VisitTrailingTrivia(token);
-        }
-
-        public override void VisitTrivia(SyntaxTrivia trivia)
-        {
-            base.VisitTrivia(trivia);
-        }
 
         public override void VisitIdentifierName(IdentifierNameSyntax node)
         {
@@ -829,21 +777,6 @@ namespace CsToKotlinTranspiler
                 var name = node.Identifier.Text;
                 Write(name);
             }
-        }
-
-        public override void VisitQualifiedName(QualifiedNameSyntax node)
-        {
-            base.VisitQualifiedName(node);
-        }
-
-        public override void VisitGenericName(GenericNameSyntax node)
-        {
-            base.VisitGenericName(node);
-        }
-
-        public override void VisitTypeArgumentList(TypeArgumentListSyntax node)
-        {
-            base.VisitTypeArgumentList(node);
         }
 
         public override void VisitMemberBindingExpression(MemberBindingExpressionSyntax node)
@@ -905,201 +838,7 @@ namespace CsToKotlinTranspiler
             base.VisitDocumentationCommentTrivia(node);
         }
 
-        public override void VisitTypeCref(TypeCrefSyntax node)
-        {
-            base.VisitTypeCref(node);
-        }
-
-        public override void VisitQualifiedCref(QualifiedCrefSyntax node)
-        {
-            base.VisitQualifiedCref(node);
-        }
-
-        public override void VisitNameMemberCref(NameMemberCrefSyntax node)
-        {
-            base.VisitNameMemberCref(node);
-        }
-
-        public override void VisitIndexerMemberCref(IndexerMemberCrefSyntax node)
-        {
-            base.VisitIndexerMemberCref(node);
-        }
-
-        public override void VisitOperatorMemberCref(OperatorMemberCrefSyntax node)
-        {
-            base.VisitOperatorMemberCref(node);
-        }
-
-        public override void VisitConversionOperatorMemberCref(ConversionOperatorMemberCrefSyntax node)
-        {
-            base.VisitConversionOperatorMemberCref(node);
-        }
-
-        public override void VisitCrefParameterList(CrefParameterListSyntax node)
-        {
-            base.VisitCrefParameterList(node);
-        }
-
-        public override void VisitCrefBracketedParameterList(CrefBracketedParameterListSyntax node)
-        {
-            base.VisitCrefBracketedParameterList(node);
-        }
-
-        public override void VisitCrefParameter(CrefParameterSyntax node)
-        {
-            base.VisitCrefParameter(node);
-        }
-
-        public override void VisitXmlElement(XmlElementSyntax node)
-        {
-            base.VisitXmlElement(node);
-        }
-
-        public override void VisitXmlElementStartTag(XmlElementStartTagSyntax node)
-        {
-            base.VisitXmlElementStartTag(node);
-        }
-
-        public override void VisitXmlElementEndTag(XmlElementEndTagSyntax node)
-        {
-            base.VisitXmlElementEndTag(node);
-        }
-
-        public override void VisitXmlEmptyElement(XmlEmptyElementSyntax node)
-        {
-            base.VisitXmlEmptyElement(node);
-        }
-
-        public override void VisitXmlName(XmlNameSyntax node)
-        {
-            base.VisitXmlName(node);
-        }
-
-        public override void VisitXmlPrefix(XmlPrefixSyntax node)
-        {
-            base.VisitXmlPrefix(node);
-        }
-
-        public override void VisitXmlTextAttribute(XmlTextAttributeSyntax node)
-        {
-            base.VisitXmlTextAttribute(node);
-        }
-
-        public override void VisitXmlCrefAttribute(XmlCrefAttributeSyntax node)
-        {
-            base.VisitXmlCrefAttribute(node);
-        }
-
-        public override void VisitXmlNameAttribute(XmlNameAttributeSyntax node)
-        {
-            base.VisitXmlNameAttribute(node);
-        }
-
-        public override void VisitXmlText(XmlTextSyntax node)
-        {
-            base.VisitXmlText(node);
-        }
-
-        public override void VisitXmlCDataSection(XmlCDataSectionSyntax node)
-        {
-            base.VisitXmlCDataSection(node);
-        }
-
-        public override void VisitXmlProcessingInstruction(XmlProcessingInstructionSyntax node)
-        {
-            base.VisitXmlProcessingInstruction(node);
-        }
-
-        public override void VisitXmlComment(XmlCommentSyntax node)
-        {
-            base.VisitXmlComment(node);
-        }
-
-        public override void VisitIfDirectiveTrivia(IfDirectiveTriviaSyntax node)
-        {
-            base.VisitIfDirectiveTrivia(node);
-        }
-
-        public override void VisitElifDirectiveTrivia(ElifDirectiveTriviaSyntax node)
-        {
-            base.VisitElifDirectiveTrivia(node);
-        }
-
-        public override void VisitElseDirectiveTrivia(ElseDirectiveTriviaSyntax node)
-        {
-            base.VisitElseDirectiveTrivia(node);
-        }
-
-        public override void VisitEndIfDirectiveTrivia(EndIfDirectiveTriviaSyntax node)
-        {
-            base.VisitEndIfDirectiveTrivia(node);
-        }
-
-        public override void VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
-        {
-            base.VisitRegionDirectiveTrivia(node);
-        }
-
-        public override void VisitEndRegionDirectiveTrivia(EndRegionDirectiveTriviaSyntax node)
-        {
-            base.VisitEndRegionDirectiveTrivia(node);
-        }
-
-        public override void VisitErrorDirectiveTrivia(ErrorDirectiveTriviaSyntax node)
-        {
-            base.VisitErrorDirectiveTrivia(node);
-        }
-
-        public override void VisitWarningDirectiveTrivia(WarningDirectiveTriviaSyntax node)
-        {
-            base.VisitWarningDirectiveTrivia(node);
-        }
-
-        public override void VisitBadDirectiveTrivia(BadDirectiveTriviaSyntax node)
-        {
-            base.VisitBadDirectiveTrivia(node);
-        }
-
-        public override void VisitDefineDirectiveTrivia(DefineDirectiveTriviaSyntax node)
-        {
-            base.VisitDefineDirectiveTrivia(node);
-        }
-
-        public override void VisitUndefDirectiveTrivia(UndefDirectiveTriviaSyntax node)
-        {
-            base.VisitUndefDirectiveTrivia(node);
-        }
-
-        public override void VisitLineDirectiveTrivia(LineDirectiveTriviaSyntax node)
-        {
-            base.VisitLineDirectiveTrivia(node);
-        }
-
-        public override void VisitPragmaWarningDirectiveTrivia(PragmaWarningDirectiveTriviaSyntax node)
-        {
-            base.VisitPragmaWarningDirectiveTrivia(node);
-        }
-
-        public override void VisitPragmaChecksumDirectiveTrivia(PragmaChecksumDirectiveTriviaSyntax node)
-        {
-            base.VisitPragmaChecksumDirectiveTrivia(node);
-        }
-
-        public override void VisitReferenceDirectiveTrivia(ReferenceDirectiveTriviaSyntax node)
-        {
-            base.VisitReferenceDirectiveTrivia(node);
-        }
-
-        public override void VisitLoadDirectiveTrivia(LoadDirectiveTriviaSyntax node)
-        {
-            base.VisitLoadDirectiveTrivia(node);
-        }
-
-        public override void VisitShebangDirectiveTrivia(ShebangDirectiveTriviaSyntax node)
-        {
-            base.VisitShebangDirectiveTrivia(node);
-        }
-
+        
         public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
         {
             base.VisitIndexerDeclaration(node);
@@ -1316,7 +1055,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
         {
-            base.VisitArrayCreationExpression(node);
+            var t = GetKotlinType(node.Type);
+            Write(t + "()");
+            //TODO: handle initializer
         }
 
         public override void VisitImplicitArrayCreationExpression(ImplicitArrayCreationExpressionSyntax node)
@@ -1504,6 +1245,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitPointerType(PointerTypeSyntax node)
         {
+            //Not supported
             base.VisitPointerType(node);
         }
 

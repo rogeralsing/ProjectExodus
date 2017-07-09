@@ -16,11 +16,17 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private StringBuilder _sb = new StringBuilder();
+        private readonly StringBuilder _sb = new StringBuilder();
         
 
         private string GetKotlinType(TypeSyntax type)
         {
+            if (type is ArrayTypeSyntax arr)
+            {
+                var t = GetKotlinType(arr.ElementType);
+                return $"arrayOf<{t}>";
+            }
+
             var si = _model.GetSymbolInfo(type);
             var s = si.Symbol;
             if (s == null)
