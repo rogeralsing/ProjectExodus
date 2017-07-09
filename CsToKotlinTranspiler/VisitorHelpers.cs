@@ -122,7 +122,7 @@ namespace CsToKotlinTranspiler
             return arg;
         }
 
-        private void Indent(string text)
+        private void IndentWrite(string text)
         {
             Write(GetIndent() + text);
         }
@@ -143,7 +143,7 @@ namespace CsToKotlinTranspiler
             Write("\n");
         }
 
-        private void WriteLine(string text)
+        private void IndentWriteNewLine(string text)
         {
             Write(GetIndent() + text);
             NewLine();
@@ -187,8 +187,6 @@ namespace CsToKotlinTranspiler
         private string GetKotlinDefaultValue(TypeSyntax type)
         {
             var si = _model.GetSymbolInfo(type);
-
-
             var s = si.Symbol;
             if (s == null)
             {
@@ -197,6 +195,8 @@ namespace CsToKotlinTranspiler
             var str = s.Name;
             switch (str)
             {
+                case "Int64":
+                    return "0";
                 case "Int32":
                     return "0";
                 case "Boolean":
@@ -204,6 +204,21 @@ namespace CsToKotlinTranspiler
                 case "String":
                     return "\"\"";
             }
+            if (s is INamedTypeSymbol named)
+            {
+                if (named.TypeKind == TypeKind.Enum)
+                {
+                    return $"{named.Name}.{named.MemberNames.First()}";
+                }
+
+                if (named.TypeKind == TypeKind.Struct)
+                {
+                    var t = GetKotlinType(type);
+                    return $"{t}()"; //structs are initialized to empty ctor
+                }
+            }
+
+            
             return null;
         }
 
