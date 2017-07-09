@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Mailbox", "Proto.Mail
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Actor", "Proto.Actor\Proto.Actor.csproj", "{FC81CECE-10D2-480D-AAEF-5B29C6481810}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DebuggingMissingTypes", "DebuggingMissingTypes\DebuggingMissingTypes.csproj", "{54E88B94-3465-4A7E-BC03-028B74932E04}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,10 +21,6 @@ Global
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.Build.0 = Release|Any CPU
-		{54E88B94-3465-4A7E-BC03-028B74932E04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{54E88B94-3465-4A7E-BC03-028B74932E04}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{54E88B94-3465-4A7E-BC03-028B74932E04}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{54E88B94-3465-4A7E-BC03-028B74932E04}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

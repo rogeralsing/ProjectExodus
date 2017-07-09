@@ -40,6 +40,10 @@ namespace CsToKotlinTranspiler
                 foreach (var d in p.Documents)
                 {
                     var n = d.Name.ToLowerInvariant();
+                    ////if (n != "program.cs")
+                    ////{
+                    ////    continue;
+                    ////}
                     if (n.Contains("assemblyinfo") || n.Contains("assemblyattributes") || !n.EndsWith(".cs"))
                     {
                         continue;
