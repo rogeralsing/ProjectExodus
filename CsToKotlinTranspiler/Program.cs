@@ -36,7 +36,8 @@ namespace CsToKotlinTranspiler
                     var model = await d.GetSemanticModelAsync();
                     var root = await d.GetSyntaxRootAsync();
                     var visitor = new KotlinTranspilerVisitor(model);
-                    visitor.Visit(root);
+                    var res = visitor.Run(root);
+                    
                 }
             }
         }

@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -15,9 +16,11 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
+        private StringBuilder _sb = new StringBuilder();
+        
+
         private string GetKotlinType(TypeSyntax type)
         {
-            var ti = _model.GetTypeInfo(type);
             var si = _model.GetSymbolInfo(type);
             var s = si.Symbol;
             if (s == null)
@@ -41,8 +44,16 @@ namespace CsToKotlinTranspiler
 
                 if (named?.IsGenericType == true)
                 {
+                    var name = named.Name;
+                    switch (name)
+                    {
+                        case "ConcurrentQueue":
+                            name = "ConcurrentLinkedQueue";
+                            break;
+                    }
+
                     var args = named.TypeArguments.Select(GetKotlinType);
-                    return $"{named.Name}<{string.Join(", ", args)}>";
+                    return $"{name}<{string.Join(", ", args)}>";
                 }
             }
 
@@ -62,8 +73,12 @@ namespace CsToKotlinTranspiler
                     return "Any";
                 case "Int32":
                     return "Int";
+                case "Boolean":
+                    return "Boolean";
                 case "String":
                     return "String";
+                case "ArgumentException":
+                    return "IllegalArgumentException";
             }
 
             return str;
@@ -95,7 +110,7 @@ namespace CsToKotlinTranspiler
 
         private void Indent(string text)
         {
-            Console.Write(GetIndent() + text);
+            Write(GetIndent() + text);
         }
 
         private void Indent()
@@ -106,6 +121,7 @@ namespace CsToKotlinTranspiler
         private void Write(string text)
         {
             Console.Write(text);
+            _sb.Append(text);
         }
 
         private void NewLine()
@@ -152,6 +168,29 @@ namespace CsToKotlinTranspiler
                                                  .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
                                                  .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
+        }
+
+        private string GetKotlinDefaultValue(TypeSyntax type)
+        {
+            var si = _model.GetSymbolInfo(type);
+            var s = si.Symbol;
+            var str = s.Name;
+            switch (str)
+            {
+                case "Int32":
+                    return "0";
+                case "Boolean":
+                    return "false";
+                case "String":
+                    return "\"\"";
+            }
+            return null;
+        }
+
+        public string Run(SyntaxNode root)
+        {
+            Visit(root);
+            return _sb.ToString();
         }
     }
 }

@@ -101,13 +101,28 @@ namespace CsToKotlinTranspiler
             foreach (var v in node.Declaration.Variables)
             {
                 WriteModifiers(node.Modifiers);
-                Write(FieldIsReadOnly(node) ? "val" : "var");
-
-                Write($" {v.Identifier} : {GetKotlinType(node.Declaration.Type)}");
+                var isReadOnly = FieldIsReadOnly(node);
+                Write(isReadOnly ? "val" : "var");
+                var t = GetKotlinType(node.Declaration.Type);
+                var d = GetKotlinDefaultValue(node.Declaration.Type);
+                var nullable = v.Initializer == null && !isReadOnly;
                 if (v.Initializer != null)
                 {
-                    Write(" = ");
+                    Write($" {v.Identifier} : {t} = ");
                     Visit(v.Initializer.Value);
+                }
+                else if (d != null)
+                {
+                    Write($" {v.Identifier} : {t} = {d}");
+                }
+                else if (nullable)
+                {
+
+                    Write($" {v.Identifier} : {t}? = null");
+                }
+                else
+                {
+                    Write($" {v.Identifier} : {t}");
                 }
                 NewLine();
             }
@@ -695,7 +710,7 @@ namespace CsToKotlinTranspiler
             var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
 
             Indent();
-            if (!modifiers.Contains("sealed") && !modifiers.Contains("abstract"))
+            if (!modifiers.Contains("sealed") && !modifiers.Contains("abstract") && !modifiers.Contains("static"))
             {
                 Write("open ");
             }
@@ -710,6 +725,10 @@ namespace CsToKotlinTranspiler
             if (modifiers.Contains("internal"))
             {
                 Write("internal ");
+            }
+            if (modifiers.Contains("abstract"))
+            {
+                Write("abstract ");
             }
         }
 
@@ -730,6 +749,10 @@ namespace CsToKotlinTranspiler
             if (modifiers.Contains("internal"))
             {
                 Write("internal ");
+            }
+            if (modifiers.Contains("abstract"))
+            {
+                Write("abstract ");
             }
         }
 
@@ -762,11 +785,12 @@ namespace CsToKotlinTranspiler
         {
             var si = _model.GetSymbolInfo(node);
             var sym = si.Symbol;
+
             if (sym == null)
             {
                 Write(node.Identifier.Text);
             }
-            else if (sym.Kind == SymbolKind.Method)
+            else if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
             {
                 var name = ToCamelCase(node.Identifier.Text);
                 Write(name);
@@ -1636,7 +1660,8 @@ namespace CsToKotlinTranspiler
 
         public override void VisitThrowExpression(ThrowExpressionSyntax node)
         {
-            base.VisitThrowExpression(node);
+            Write("throw ");
+            Visit(node.Expression);
         }
     }
 }
