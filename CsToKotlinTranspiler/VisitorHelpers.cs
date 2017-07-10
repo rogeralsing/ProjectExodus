@@ -18,30 +18,26 @@ namespace CsToKotlinTranspiler
     public partial class KotlinTranspilerVisitor
     {
         private readonly StringBuilder _sb = new StringBuilder();
-        
+
         private string GetKotlinType(TypeSyntax type)
         {
-            if (type is ArrayTypeSyntax arr)
+            return GetKotlinType(GetTypeSymbol(type));
+        }
+
+        private ITypeSymbol GetTypeSymbol(TypeSyntax type)
+        {
+            var ti = _model.GetTypeInfo(type);
+            if (ti.Type != null)
             {
-                var t = GetKotlinType(arr.ElementType);
-                return $"arrayOf<{t}>";
+                return ti.Type;
+            }
+            var s = _model.GetSymbolInfo(type).Symbol;
+            if (s != null)
+            {
+                return s as ITypeSymbol;
             }
 
-            var si = _model.GetSymbolInfo(type);
-            var s = si.Symbol;
-            if (s == null)
-            {
-                Debugger.Break();
-                var d = _model.GetDeclaredSymbol(type);
-                var ti = _model.GetTypeInfo(type);
-                if (ti.Type?.Kind == SymbolKind.ErrorType)
-                {
-                    return "**error type**";
-                }
-
-                return "**unknown type**"; //TODO: how does this work?
-            }
-            return GetKotlinType(s as ITypeSymbol);
+            throw new NotSupportedException("Unknown TypeSyntax");
         }
 
         private string GetKotlinType(ITypeSymbol s)
@@ -58,7 +54,7 @@ namespace CsToKotlinTranspiler
 
                 if (named?.IsGenericType == true)
                 {
-                    var name = GetGenericName(named.Name);
+                    var name = TypeHelpers.GetGenericName(named.Name);
 
                     var args = named.TypeArguments.Select(GetKotlinType);
                     return $"{name}<{string.Join(", ", args)}>";
@@ -70,49 +66,7 @@ namespace CsToKotlinTranspiler
                 var arr = (IArrayTypeSymbol) s;
                 return $"Array<{GetKotlinType(arr.ElementType)}>";
             }
-            return GetName(s.Name);
-        }
-
-        private string GetName(string name) 
-        {
-            switch (name)
-            {
-                case "Void":
-                    return "Unit";
-                case "TimeSpan":
-                    return "Duration";
-                case "Object":
-                    return "Any";
-                case "Int32":
-                    return "Int";
-                case "Boolean":
-                    return "Boolean";
-                case "String":
-                    return "String";
-                case "ArgumentException":
-                    return "IllegalArgumentException";
-                default:
-                    return name;
-            }
-        }
-
-        private static string GetGenericName(string name)
-        {
-            switch (name)
-            {
-                case "ConcurrentQueue":
-                    return "ConcurrentLinkedQueue";
-                case "ConcurrentDictionary":
-                    return "ConcurrentHashMap";
-                case "List":
-                    return "MutableList";
-                case "Set":
-                    return "MutableSet";
-                case "Stack":
-                    return "Stack";
-                default:
-                    return name;
-            }
+            return TypeHelpers.GetName(s.Name);
         }
 
         public string GetKotlinPackageName(string ns)
@@ -178,26 +132,26 @@ namespace CsToKotlinTranspiler
 
         private static bool FieldIsReadOnly(FieldDeclarationSyntax node)
         {
-            return node.Modifiers.Any(m => m.Text == "readonly" || m.Text=="const");
+            return node.Modifiers.Any(m => m.Text == "readonly" || m.Text == "const");
         }
 
         private bool IsInterfaceMethod(MethodDeclarationSyntax node)
         {
             var methodSymbol = _model.GetDeclaredSymbol(node);
-            bool isInterfaceMethod = methodSymbol.ContainingType
-                                                 .AllInterfaces
-                                                 .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
-                                                 .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+            var isInterfaceMethod = methodSymbol.ContainingType
+                                                .AllInterfaces
+                                                .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
+                                                .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
 
         private bool IsInterfaceProperty(PropertyDeclarationSyntax node)
         {
             var methodSymbol = _model.GetDeclaredSymbol(node);
-            bool isInterfaceMethod = methodSymbol.ContainingType
-                                                 .AllInterfaces
-                                                 .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
-                                                 .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+            var isInterfaceMethod = methodSymbol.ContainingType
+                                                .AllInterfaces
+                                                .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
+                                                .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
 
@@ -235,7 +189,6 @@ namespace CsToKotlinTranspiler
                 }
             }
 
-            
             return null;
         }
 
