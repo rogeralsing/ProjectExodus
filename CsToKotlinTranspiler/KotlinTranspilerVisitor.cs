@@ -496,9 +496,13 @@ namespace CsToKotlinTranspiler
         public override void VisitLockStatement(LockStatementSyntax node)
         {
             Indent();
+            
+            Write("synchronized(");
             Visit(node.Expression);
-            Write(".lock.withLock");
-            VisitMaybeBlock(node.Statement);
+            Write(",{");
+            VisitMaybeInlineBlock(node.Statement);
+            Write(")");
+            NewLine();
         }
 
         public override void VisitIfStatement(IfStatementSyntax node)
