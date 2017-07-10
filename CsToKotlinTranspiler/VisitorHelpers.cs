@@ -42,8 +42,13 @@ namespace CsToKotlinTranspiler
 
         private string GetKotlinType(ITypeSymbol s)
         {
-            var named = s as INamedTypeSymbol;
-            if (named != null)
+            if (s.Kind == SymbolKind.ArrayType)
+            {
+                var arr = (IArrayTypeSymbol)s;
+                return $"Array<{GetKotlinType(arr.ElementType)}>";
+            }
+
+            if (s is INamedTypeSymbol named)
             {
                 if (s.TypeKind == TypeKind.Delegate)
                 {
@@ -52,7 +57,7 @@ namespace CsToKotlinTranspiler
                     return $"({string.Join(", ", args)}) -> {ret}";
                 }
 
-                if (named?.IsGenericType == true)
+                if (named.IsGenericType)
                 {
                     var name = TypeHelpers.GetGenericName(named.Name);
 
@@ -61,11 +66,7 @@ namespace CsToKotlinTranspiler
                 }
             }
 
-            if (s.Kind == SymbolKind.ArrayType)
-            {
-                var arr = (IArrayTypeSymbol) s;
-                return $"Array<{GetKotlinType(arr.ElementType)}>";
-            }
+
             return TypeHelpers.GetName(s.Name);
         }
 
@@ -157,23 +158,27 @@ namespace CsToKotlinTranspiler
 
         private string GetKotlinDefaultValue(TypeSyntax type)
         {
-            var si = _model.GetSymbolInfo(type);
-            var s = si.Symbol;
-            if (s == null)
-            {
-                return null;
-            }
+            var s = GetTypeSymbol(type);
             var str = s.Name;
             switch (str)
             {
-                case "Int64":
-                    return "0";
-                case "Int32":
-                    return "0";
-                case "Boolean":
-                    return "false";
-                case "String":
-                    return "\"\"";
+                case nameof(Int64): return "0";
+                case nameof(Int32): return "0";
+                case nameof(Double): return "0.0";
+                case nameof(Single): return "0.0";
+                case nameof(Boolean): return "false";
+                case nameof(String): return null;
+                case nameof(List<object>): return null;
+                case nameof(ISet<object>):
+                case nameof(HashSet<object>): return null;
+            }
+            if (s.TypeKind == TypeKind.Interface)
+            {
+                return null;
+            }
+            if (s.TypeKind == TypeKind.Array)
+            {
+                return "arrayOf()";
             }
             if (s is INamedTypeSymbol named)
             {
