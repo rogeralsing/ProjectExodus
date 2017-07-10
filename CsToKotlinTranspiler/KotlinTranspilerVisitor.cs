@@ -427,9 +427,28 @@ namespace CsToKotlinTranspiler
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-            IndentWrite("for (");
-            Write(")");
-            VisitMaybeBlock(node.Statement);
+
+            if (node?.Declaration.Variables.Count == 1 && 
+                node?.Declaration.Variables.First() is VariableDeclaratorSyntax init &&
+                node?.Incrementors.Count == 1 && 
+                node?.Incrementors.First() is PostfixUnaryExpressionSyntax inc &&
+                inc.Kind() == SyntaxKind.PostIncrementExpression &&
+                node.Condition is BinaryExpressionSyntax guard)
+            {
+
+                IndentWrite($"for ({init.Identifier.Text} = ");
+                Visit(init.Initializer.Value);
+                Write("..");
+                Visit(guard.Right);
+                Write(")");
+                VisitMaybeBlock(node.Statement);
+            }
+            else
+            {
+                
+                IndentWriteLine("*** Unknown for statement ***");
+            }
+            
         }
 
         public override void VisitForEachStatement(ForEachStatementSyntax node)

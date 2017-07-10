@@ -58,13 +58,7 @@ namespace CsToKotlinTranspiler
 
                 if (named?.IsGenericType == true)
                 {
-                    var name = named.Name;
-                    switch (name)
-                    {
-                        case "ConcurrentQueue":
-                            name = "ConcurrentLinkedQueue";
-                            break;
-                    }
+                    var name = GetGenericName(named.Name);
 
                     var args = named.TypeArguments.Select(GetKotlinType);
                     return $"{name}<{string.Join(", ", args)}>";
@@ -76,8 +70,12 @@ namespace CsToKotlinTranspiler
                 var arr = (IArrayTypeSymbol) s;
                 return $"Array<{GetKotlinType(arr.ElementType)}>";
             }
-            var str = s.Name;
-            switch (str)
+            return GetName(s.Name);
+        }
+
+        private string GetName(string name) 
+        {
+            switch (name)
             {
                 case "Void":
                     return "Unit";
@@ -93,9 +91,28 @@ namespace CsToKotlinTranspiler
                     return "String";
                 case "ArgumentException":
                     return "IllegalArgumentException";
+                default:
+                    return name;
             }
+        }
 
-            return str;
+        private static string GetGenericName(string name)
+        {
+            switch (name)
+            {
+                case "ConcurrentQueue":
+                    return "ConcurrentLinkedQueue";
+                case "ConcurrentDictionary":
+                    return "ConcurrentHashMap";
+                case "List":
+                    return "MutableList";
+                case "Set":
+                    return "MutableSet";
+                case "Stack":
+                    return "Stack";
+                default:
+                    return name;
+            }
         }
 
         public string GetKotlinPackageName(string ns)
