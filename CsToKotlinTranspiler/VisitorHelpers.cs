@@ -143,7 +143,7 @@ namespace CsToKotlinTranspiler
             Write("\n");
         }
 
-        private void IndentWriteNewLine(string text)
+        private void IndentWriteLine(string text)
         {
             Write(GetIndent() + text);
             NewLine();

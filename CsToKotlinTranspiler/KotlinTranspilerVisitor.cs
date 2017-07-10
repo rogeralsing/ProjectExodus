@@ -146,7 +146,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
-            IndentWriteNewLine($"package {GetKotlinPackageName(node.Name.ToString())}");
+            IndentWriteLine($"package {GetKotlinPackageName(node.Name.ToString())}");
             //base.VisitNamespaceDeclaration(node);
             foreach (var m in node.Members)
             {
@@ -216,21 +216,21 @@ namespace CsToKotlinTranspiler
 
             if (statics.Any())
             {
-                IndentWriteNewLine("companion object {");
+                IndentWriteLine("companion object {");
                 _indent++;
                 foreach (var m in statics)
                 {
                     Visit(m);
                 }
                 _indent--;
-                IndentWriteNewLine("}");
+                IndentWriteLine("}");
             }
             foreach (var m in instance)
             {
                 Visit(m);
             }
             _indent--;
-            IndentWriteNewLine("}");
+            IndentWriteLine("}");
         }
 
         public override void VisitStructDeclaration(StructDeclarationSyntax node)
@@ -250,7 +250,7 @@ namespace CsToKotlinTranspiler
                 Visit(m);
             }
             _indent--;
-            IndentWriteNewLine("}");
+            IndentWriteLine("}");
         }
 
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
@@ -277,7 +277,7 @@ namespace CsToKotlinTranspiler
             _indent--;
             NewLine();
             
-            IndentWriteNewLine("}");
+            IndentWriteLine("}");
         }
 
         public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
@@ -362,7 +362,6 @@ namespace CsToKotlinTranspiler
 
         public override void VisitEmptyStatement(EmptyStatementSyntax node)
         {
-            base.VisitEmptyStatement(node);
         }
 
         public override void VisitLabeledStatement(LabeledStatementSyntax node)
@@ -377,12 +376,12 @@ namespace CsToKotlinTranspiler
 
         public override void VisitBreakStatement(BreakStatementSyntax node)
         {
-            base.VisitBreakStatement(node);
+            IndentWriteLine("breaj");
         }
 
         public override void VisitContinueStatement(ContinueStatementSyntax node)
         {
-            base.VisitContinueStatement(node);
+            IndentWriteLine("continue");
         }
 
         public override void VisitReturnStatement(ReturnStatementSyntax node)
@@ -415,7 +414,7 @@ namespace CsToKotlinTranspiler
         public override void VisitDoStatement(DoStatementSyntax node)
         {
             var b = node.Statement as BlockSyntax;
-            IndentWriteNewLine("do ");
+            IndentWriteLine("do ");
             VisitInlineBlock(b);
             if (node.Condition != null)
             {
@@ -536,14 +535,14 @@ namespace CsToKotlinTranspiler
             IndentWrite("val tmp = ");
             Visit(node.Expression);
             NewLine();
-            IndentWriteNewLine("when (tmp) {");
+            IndentWriteLine("when (tmp) {");
             _indent++;
             foreach (var s in node.Sections)
             {
                 Visit(s);
             }
             _indent--;
-            IndentWriteNewLine("}");
+            IndentWriteLine("}");
         }
 
         public override void VisitSwitchSection(SwitchSectionSyntax node)
@@ -579,7 +578,7 @@ namespace CsToKotlinTranspiler
                     var d = c.Pattern as DeclarationPatternSyntax;
                     if (d.Designation is SingleVariableDesignationSyntax v)
                     {
-                        IndentWriteNewLine($"val {v.Identifier.Text} = tmp");
+                        IndentWriteLine($"val {v.Identifier.Text} = tmp");
                     }
                 }
                 foreach (var s in node.Statements)
@@ -587,7 +586,7 @@ namespace CsToKotlinTranspiler
                     Visit(s);
                 }
                 _indent--;
-                IndentWriteNewLine("}");
+                IndentWriteLine("}");
             }
             else
             {
@@ -719,7 +718,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
         {
-            base.VisitConditionalAccessExpression(node);
+            Visit(node.Expression);
+            Write("?.");
+            Visit(node.WhenNotNull);
         }
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
@@ -953,7 +954,7 @@ namespace CsToKotlinTranspiler
                     Visit(s);
                 }
                 _indent--;
-                IndentWriteNewLine("}");
+                IndentWriteLine("}");
             }
             else
             {
@@ -985,7 +986,7 @@ namespace CsToKotlinTranspiler
                     Visit(s);
                 }
                 _indent--;
-                IndentWriteNewLine("}");
+                IndentWriteLine("}");
             }
             else
             {
@@ -1242,7 +1243,7 @@ namespace CsToKotlinTranspiler
             _indent++;
             base.VisitBlock(node);
             _indent--;
-            IndentWriteNewLine("}");
+            IndentWriteLine("}");
         }
 
         public void VisitInlineBlock(BlockSyntax node)
