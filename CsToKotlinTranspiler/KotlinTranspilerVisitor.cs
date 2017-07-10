@@ -685,11 +685,6 @@ namespace CsToKotlinTranspiler
         {
             var methodName = node.Name.ToString();
             var sym = _model.GetSymbolInfo(node).Symbol;
-            if (sym == null)
-            {
-                Write($"**failure in {nameof(VisitMemberAccessExpression)}**");
-                return;
-            }
             var containingTypeName = sym?.ContainingType?.Name;
 
             switch (containingTypeName)

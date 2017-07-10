@@ -23,7 +23,7 @@ namespace CsToKotlinTranspiler
             var myPath = Assembly.GetExecutingAssembly().Location;
 
             var dir = Path.GetDirectoryName(myPath);
-            var srcPath = Path.Combine(dir, @"..\..\..");
+            var srcPath = Path.GetFullPath(Path.Combine(dir, @"..\..\.."));
 
             var ws = MSBuildWorkspace.Create();
             var output = srcPath + @"\demooutput";
@@ -40,12 +40,14 @@ namespace CsToKotlinTranspiler
                     }
 
                     var model = await d.GetSemanticModelAsync();
-
                     var root = await d.GetSyntaxRootAsync();
-
                     var visitor = new KotlinTranspilerVisitor(model);
                     var res = visitor.Run(root);
-                    var fileName = Path.ChangeExtension(d.Name, ".kt");
+
+                    var o = d.FilePath.Replace("democode", "demooutput");
+                    var fileName = Path.ChangeExtension(o, ".kt");
+                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
+                    
                     var outputFile = Path.Combine(output, fileName);
                     File.WriteAllText(outputFile, res);
                 }
