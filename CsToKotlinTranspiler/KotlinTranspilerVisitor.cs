@@ -18,7 +18,7 @@ namespace CsToKotlinTranspiler
     public partial class KotlinTranspilerVisitor : CSharpSyntaxWalker
     {
         private readonly SemanticModel _model;
-        private int _indent;
+
 
         public KotlinTranspilerVisitor(SemanticModel model, SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node) : base(depth)
         {
@@ -400,7 +400,19 @@ namespace CsToKotlinTranspiler
 
         public override void VisitYieldStatement(YieldStatementSyntax node)
         {
-            base.VisitYieldStatement(node);
+            if (node.Kind() == SyntaxKind.YieldBreakStatement)
+            {
+                IndentWrite("return");
+                NewLine();
+            }
+            if (node.Kind() == SyntaxKind.YieldReturnStatement)
+            {
+                IndentWrite("yield (");
+                Visit(node.Expression);
+                Write(")");
+                NewLine();
+            }
+            
         }
 
         public override void VisitWhileStatement(WhileStatementSyntax node)
@@ -464,30 +476,29 @@ namespace CsToKotlinTranspiler
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
             //Not supported
-            base.VisitUsingStatement(node);
         }
 
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
             //Not supported
-            base.VisitFixedStatement(node);
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
             //Not supported
-            base.VisitCheckedStatement(node);
         }
 
         public override void VisitUnsafeStatement(UnsafeStatementSyntax node)
         {
             //Not supported
-            base.VisitUnsafeStatement(node);
         }
 
         public override void VisitLockStatement(LockStatementSyntax node)
         {
-            base.VisitLockStatement(node);
+            Indent();
+            Visit(node.Expression);
+            Write(".lock.withLock");
+            VisitMaybeBlock(node.Statement);
         }
 
         public override void VisitIfStatement(IfStatementSyntax node)
@@ -1458,12 +1469,10 @@ namespace CsToKotlinTranspiler
 
         public override void VisitAttribute(AttributeSyntax node)
         {
-            base.VisitAttribute(node);
         }
 
         public override void VisitAttributeArgument(AttributeArgumentSyntax node)
         {
-            base.VisitAttributeArgument(node);
         }
 
         public override void VisitNameEquals(NameEqualsSyntax node)
@@ -1478,7 +1487,6 @@ namespace CsToKotlinTranspiler
 
         public override void VisitAttributeArgumentList(AttributeArgumentListSyntax node)
         {
-            base.VisitAttributeArgumentList(node);
         }
 
         public override void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)

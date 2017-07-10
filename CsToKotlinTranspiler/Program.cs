@@ -4,11 +4,9 @@
 //   </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.IO;
-using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CsToKotlinTranspiler
@@ -17,33 +15,25 @@ namespace CsToKotlinTranspiler
     {
         static void Main(string[] args)
         {
-            Run();
-            Console.ReadLine();
+            Run().Wait();
         }
 
         private static async Task Run()
         {
-            var myPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            var myPath = Assembly.GetExecutingAssembly().Location;
 
-            var dir = System.IO.Path.GetDirectoryName(myPath);
+            var dir = Path.GetDirectoryName(myPath);
             var srcPath = Path.Combine(dir, @"..\..\..");
 
             var ws = MSBuildWorkspace.Create();
             var output = srcPath + @"\demooutput";
             var sln = await ws.OpenSolutionAsync(srcPath + @"\democode\DemoCode.sln");
 
-            var compilations = await Task.WhenAll(sln.Projects.Select(x => x.GetCompilationAsync()));
-
             foreach (var p in sln.Projects)
             {
-                var c = await p.GetCompilationAsync();
                 foreach (var d in p.Documents)
                 {
                     var n = d.Name.ToLowerInvariant();
-                    ////if (n != "program.cs")
-                    ////{
-                    ////    continue;
-                    ////}
                     if (n.Contains("assemblyinfo") || n.Contains("assemblyattributes") || !n.EndsWith(".cs"))
                     {
                         continue;
@@ -60,12 +50,6 @@ namespace CsToKotlinTranspiler
                     File.WriteAllText(outputFile, res);
                 }
             }
-        }
-
-        private static void Ws_WorkspaceFailed(object sender, WorkspaceDiagnosticEventArgs e)
-        {
-            Console.WriteLine(e.Diagnostic.Message);
-            //   throw new NotImplementedException();
         }
     }
 }
