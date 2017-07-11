@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -172,6 +171,35 @@ namespace CsToKotlinTranspiler
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
+            if (node.Modifiers.Contains("static"))
+            {
+                WriteObject(node);
+            }
+            else
+            {
+                WriteClass(node);
+            }
+        }
+
+        private void WriteObject(ClassDeclarationSyntax node)
+        {
+            NewLine();
+            WriteClassModifiers(node.Modifiers);
+            Write($"object {node.Identifier}");
+            Write(" {");
+            NewLine();
+            _indent++;
+
+            foreach (var m in node.Members)
+            {
+                Visit(m);
+            }
+            _indent--;
+            IndentWriteLine("}");
+        }
+
+        private void WriteClass(ClassDeclarationSyntax node)
+        {
             NewLine();
             WriteClassModifiers(node.Modifiers);
             Write($"class {node.Identifier}");
@@ -179,21 +207,11 @@ namespace CsToKotlinTranspiler
             if (node.BaseList != null)
             {
                 Write(" : ");
-                bool first = true;
-                foreach (var t in node.BaseList.Types)
+                Delimit(node.BaseList.Types, t =>
                 {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
-                        Write(", ");
-                    }
                     var tn = GetKotlinType(t.Type);
                     Write(tn);
-                }
-                //   var types = node.BaseList.Types.Select(t => _model.GetSymbolInfo(t.Type)).ToArray();
+                });
             }
 
             Write(" {");
@@ -259,21 +277,13 @@ namespace CsToKotlinTranspiler
             WriteModifiers(node.Modifiers);
             Write($"enum class {node.Identifier.Text} {{");
             NewLine();
-            bool first = true;
+            
             _indent++;
             Indent();
-            foreach (var m in node.Members)
+            Delimit(node.Members, m =>
             {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    Write(", ");
-                }
                 Write(m.Identifier.Text);
-            }
+            });
             _indent--;
             NewLine();
             
@@ -282,13 +292,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
-            base.VisitDelegateDeclaration(node);
+            //pass
         }
 
-        public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
-        {
-            base.VisitEnumMemberDeclaration(node);
-        }
 
         public override void VisitBaseList(BaseListSyntax node)
         {
@@ -317,39 +323,28 @@ namespace CsToKotlinTranspiler
 
         public override void VisitEqualsValueClause(EqualsValueClauseSyntax node)
         {
-            base.VisitEqualsValueClause(node);
+            Visit(node.Value);
         }
 
         public override void VisitSingleVariableDesignation(SingleVariableDesignationSyntax node)
         {
-            base.VisitSingleVariableDesignation(node);
+            Write(node.Identifier.Text);
         }
 
         public override void VisitParenthesizedVariableDesignation(ParenthesizedVariableDesignationSyntax node)
         {
             Write("(");
-            bool first = true;
-            foreach (var v in node.Variables)
+            Delimit(node.Variables, v =>
             {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    Write(", ");
-                }
-
                 if (v is SingleVariableDesignationSyntax single)
                 {
-
                     Write(single.Identifier.Text);
                 }
                 if (v is DiscardDesignationSyntax _)
                 {
                     Write("_");
                 }
-            }
+            });
             Write(")");
         }
 
@@ -376,7 +371,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitBreakStatement(BreakStatementSyntax node)
         {
-            IndentWriteLine("breaj");
+            IndentWriteLine("break");
         }
 
         public override void VisitContinueStatement(ContinueStatementSyntax node)
@@ -448,7 +443,7 @@ namespace CsToKotlinTranspiler
                 node.Condition is BinaryExpressionSyntax guard)
             {
 
-                IndentWrite($"for ({init.Identifier.Text} = ");
+                IndentWrite($"for ({init.Identifier.Text} in ");
                 Visit(init.Initializer.Value);
                 Write("..");
                 Visit(guard.Right);
@@ -579,60 +574,109 @@ namespace CsToKotlinTranspiler
             IndentWriteLine("}");
         }
 
+        private void Delimit<T>(IEnumerable<T> list, Action<T> action, string delimiter = ", ")
+        {
+            var first = true;
+            foreach (var item in list)
+            {
+                if (first)
+                {
+                    first = false;
+                }
+                else
+                {
+                    Write(delimiter);
+                }
+                action(item);
+            }
+        }
+
         public override void VisitSwitchSection(SwitchSectionSyntax node)
         {
-
-            if (node.Labels.First() is CasePatternSwitchLabelSyntax)
+            var label = node.Labels.First();
+            switch (label)
             {
-                IndentWrite("is ");
-
-                bool first = true;
-                foreach (CasePatternSwitchLabelSyntax c in node.Labels)
+                case CasePatternSwitchLabelSyntax _:
                 {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
-                        Write(", ");
-                    }
-                    var d = c.Pattern as DeclarationPatternSyntax;
-                    var v = d.Designation as SingleVariableDesignationSyntax;
+                    IndentWrite("is ");
 
-                    var t = GetKotlinType(d.Type);
-                    Write(t);
-                }
-
-                Write(" -> {");
-                NewLine();
-                _indent++;
-                foreach (CasePatternSwitchLabelSyntax c in node.Labels)
-                {
-                    var d = c.Pattern as DeclarationPatternSyntax;
-                    if (d.Designation is SingleVariableDesignationSyntax v)
+                    Delimit(node.Labels, i =>
                     {
-                        IndentWriteLine($"val {v.Identifier.Text} = tmp");
+                        var c = i as CasePatternSwitchLabelSyntax;
+                        var d = c.Pattern as DeclarationPatternSyntax;
+
+                        var t = GetKotlinType(d.Type);
+                        Write(t);
+                    });
+
+                    Write(" -> {");
+                    NewLine();
+                    _indent++;
+                    foreach (CasePatternSwitchLabelSyntax c in node.Labels)
+                    {
+                        var d = c.Pattern as DeclarationPatternSyntax;
+                        if (d.Designation is SingleVariableDesignationSyntax v)
+                        {
+                            IndentWriteLine($"val {v.Identifier.Text} = tmp");
+                        }
                     }
+                    foreach (var s in node.Statements)
+                    {
+                        Visit(s);
+                    }
+                    _indent--;
+                    IndentWriteLine("}");
+                    return;
                 }
-                foreach (var s in node.Statements)
+                case DefaultSwitchLabelSyntax l:
                 {
-                    Visit(s);
+                    IndentWriteLine("else -> {");
+                    _indent++;
+                    foreach (var s in node.Statements)
+                    {
+                        Visit(s);
+                    }
+                    _indent--;
+                    IndentWriteLine("}");
+                    return;
                 }
-                _indent--;
-                IndentWriteLine("}");
+                case CaseSwitchLabelSyntax _:
+                {
+                    Indent();
+                    Delimit(node.Labels, l =>
+                    {
+                        var x = l as CaseSwitchLabelSyntax;
+                        Visit(x.Value);
+                    });
+                    Write(" -> {");
+                    NewLine();
+                    _indent++;
+                    foreach (var s in node.Statements)
+                    {
+                        Visit(s);
+                    }
+                    _indent--;
+                    IndentWriteLine("}");
+                    return;
+                }
+                default:
+                {
+                    Write("Unknown case");
+                    return;
+                }
             }
-            else
-            {
-                //TODO: implement
-            }
-
-
-            //case body
-           
 
         }
 
+        public override void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
+        {
+            base.VisitCasePatternSwitchLabel(node);
+        }
+
+        public override void VisitConstantPattern(ConstantPatternSyntax node)
+        {
+            base.VisitConstantPattern(node);
+        }
 
         public override void VisitCaseSwitchLabel(CaseSwitchLabelSyntax node)
         {
@@ -787,9 +831,9 @@ namespace CsToKotlinTranspiler
             }
         }
 
-        private void WriteClassModifiers(SyntaxTokenList mods)
+
+        private void WriteClassModifiers(SyntaxTokenList modifiers)
         {
-            var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
 
             Indent();
             if (!modifiers.Contains("sealed") && !modifiers.Contains("abstract") && !modifiers.Contains("static"))
@@ -814,10 +858,8 @@ namespace CsToKotlinTranspiler
             }
         }
 
-        private void WriteModifiers(SyntaxTokenList mods)
+        private void WriteModifiers(SyntaxTokenList modifiers)
         {
-            var modifiers = mods.Select(m => m.ToString()).ToImmutableHashSet();
-
             Indent();
 
             if (modifiers.Contains("private"))
@@ -1026,44 +1068,24 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInitializerExpression(InitializerExpressionSyntax node)
         {
-            void Init(string sep)
-            {
-                var first = true;
-                foreach (var e in node.Expressions)
-                {
-                    if (first)
-                    {
-                        first = false;
-                    }
-                    else
-                    {
-                        Write(sep);
-                    }
-                    Visit(e);
-                }
-            }
-
             if (node.Parent is ObjectCreationExpressionSyntax parent)
             {
                 var t = _model.GetSymbolInfo(parent.Type).Symbol;
                 if (t?.Name == nameof(List<object>))
                 {
                     Write("listOf(");
-                    Init(", ");
+                    Delimit(node.Expressions, Visit);
                     Write(")");
                     return;
                 }
-                else
-                {
-                    Write("().apply {");
-                    Init("; ");
-                    Write("}");
-                    return;
-                }
+                Write("().apply {");
+                Delimit(node.Expressions, Visit,"; ");
+                Write("}");
+                return;
             }
 
             Write("arrayOf(");
-            Init(", ");
+            Delimit(node.Expressions, Visit);
             Write(")");
         }
 
@@ -1087,19 +1109,7 @@ namespace CsToKotlinTranspiler
         public override void VisitBracketedArgumentList(BracketedArgumentListSyntax node)
         {
             Write("[");
-            bool first = true;
-            foreach (var a in node.Arguments)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    Write(", ");
-                }
-                Visit(a);
-            }
+            Delimit(node.Arguments, Visit);
             Write("]");
         }
 
@@ -1130,19 +1140,7 @@ namespace CsToKotlinTranspiler
             }
 
             Write("(");
-            var first = true;
-            foreach (var a in node.Arguments)
-            {
-                if (first)
-                {
-                    first = false;
-                }
-                else
-                {
-                    Write(", ");
-                }
-                Visit(a);
-            }
+            Delimit(node.Arguments, Visit);
             Write(")");
         }
 
@@ -1369,38 +1367,47 @@ namespace CsToKotlinTranspiler
 
         public override void VisitParenthesizedExpression(ParenthesizedExpressionSyntax node)
         {
-            base.VisitParenthesizedExpression(node);
+            Write("(");
+            Visit(node.Expression);
+            Write(")");
         }
+
 
         public override void VisitTupleExpression(TupleExpressionSyntax node)
         {
-            base.VisitTupleExpression(node);
+            var count = node.Arguments.Count;
+            if (count == 2)
+            {
+                Write("Pair(");
+            } else if (count == 3)
+            {
+                Write("Triple(");
+            }
+            else
+            {
+                Write($"NonSupportedTuple{count}(");
+            }
+
+            Delimit(node.Arguments, Visit);
+            Write(")");
         }
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpressionSyntax node)
         {
-            base.VisitPrefixUnaryExpression(node);
+            Write(node.OperatorToken.Text);
+            Visit(node.Operand);
         }
 
         public override void VisitAwaitExpression(AwaitExpressionSyntax node)
         {
-            base.VisitAwaitExpression(node);
-        }
-
-        public override void VisitArrayType(ArrayTypeSyntax node)
-        {
-            base.VisitArrayType(node);
+            //Ignore "await"
+            Visit(node.Expression);
         }
 
         public override void VisitArrowExpressionClause(ArrowExpressionClauseSyntax node)
         {
             Write(" = ");
             Visit(node.Expression);
-        }
-
-        public override void VisitEventDeclaration(EventDeclarationSyntax node)
-        {
-            base.VisitEventDeclaration(node);
         }
 
         public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
@@ -1458,12 +1465,15 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDefaultExpression(DefaultExpressionSyntax node)
         {
-            base.VisitDefaultExpression(node);
+            var t = GetKotlinDefaultValue(node.Type) ?? "null";
+            Write(t);
         }
 
         public override void VisitTypeOfExpression(TypeOfExpressionSyntax node)
         {
-            base.VisitTypeOfExpression(node);
+            Write("typeof(");
+            var t = GetKotlinType(node.Type);
+            Write(")");
         }
 
         public override void VisitAttribute(AttributeSyntax node)
@@ -1488,15 +1498,7 @@ namespace CsToKotlinTranspiler
         {
         }
 
-        public override void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
-        {
-            base.VisitCasePatternSwitchLabel(node);
-        }
 
-        public override void VisitConstantPattern(ConstantPatternSyntax node)
-        {
-            base.VisitConstantPattern(node);
-        }
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)
         {
@@ -1512,12 +1514,14 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            base.VisitDeclarationPattern(node);
+            var t = GetKotlinType(node.Type);
+            Write(t);
+            Write(" /* " + node.Designation + "  */");
         }
 
         public override void VisitDiscardDesignation(DiscardDesignationSyntax node)
         {
-            base.VisitDiscardDesignation(node);
+            Write("_");
         }
 
         public override void VisitForEachVariableStatement(ForEachVariableStatementSyntax node)
@@ -1527,7 +1531,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitIsPatternExpression(IsPatternExpressionSyntax node)
         {
-            base.VisitIsPatternExpression(node);
+            Visit(node.Expression);
+            Write(" is ");
+            Visit(node.Pattern);
         }
 
         public override void VisitThrowExpression(ThrowExpressionSyntax node)

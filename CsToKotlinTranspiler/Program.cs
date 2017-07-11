@@ -4,6 +4,7 @@
 //   </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace CsToKotlinTranspiler
         static void Main(string[] args)
         {
             Run().Wait();
+            Console.ReadLine();
         }
 
         private static async Task Run()
@@ -50,6 +52,7 @@ namespace CsToKotlinTranspiler
                     
                     var outputFile = Path.Combine(output, fileName);
                     File.WriteAllText(outputFile, res);
+                 //   return;
                 }
             }
         }
