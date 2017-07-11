@@ -219,13 +219,9 @@ namespace CsToKotlinTranspiler
             _indent++;
             var statics = node.Members.Where(mm =>
             {
-                if (mm is FieldDeclarationSyntax field)
+                if (mm is FieldDeclarationSyntax field && (field.Modifiers.Contains("const") || field.Modifiers.Contains("static")))
                 {
-                    //const fields are companion fields
-                    if (field.Modifiers.Any(mod => mod.Text == "const"))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
                 var mmm = _model.GetDeclaredSymbol(mm);
                 return mmm?.IsStatic == true;
@@ -371,7 +367,30 @@ namespace CsToKotlinTranspiler
 
         public override void VisitBreakStatement(BreakStatementSyntax node)
         {
-            IndentWriteLine("break");
+            SyntaxNode c = node;
+            if (!IsSwitchBreak(c))
+            {
+                IndentWriteLine("break");
+            }
+        }
+
+        private static bool IsSwitchBreak(SyntaxNode c)
+        {
+            while (c.Parent != null)
+            {
+                switch (c)
+                {
+                    case SwitchStatementSyntax _:
+                        return true;
+                    case DoStatementSyntax _:
+                    case ForEachStatementSyntax _:
+                    case ForStatementSyntax _:
+                        return false;
+                }
+
+                c = c.Parent;
+            }
+            return false;
         }
 
         public override void VisitContinueStatement(ContinueStatementSyntax node)
@@ -620,7 +639,7 @@ namespace CsToKotlinTranspiler
                             IndentWriteLine($"val {v.Identifier.Text} = tmp");
                         }
                     }
-                    foreach (var s in node.Statements)
+                    foreach (var s in GetUnwrappedStatements(node.Statements))
                     {
                         Visit(s);
                     }
@@ -632,7 +651,7 @@ namespace CsToKotlinTranspiler
                 {
                     IndentWriteLine("else -> {");
                     _indent++;
-                    foreach (var s in node.Statements)
+                    foreach (var s in GetUnwrappedStatements(node.Statements))
                     {
                         Visit(s);
                     }
@@ -651,7 +670,7 @@ namespace CsToKotlinTranspiler
                     Write(" -> {");
                     NewLine();
                     _indent++;
-                    foreach (var s in node.Statements)
+                    foreach (var s in GetUnwrappedStatements(node.Statements))
                     {
                         Visit(s);
                     }
@@ -666,6 +685,15 @@ namespace CsToKotlinTranspiler
                 }
             }
 
+        }
+
+        private static SyntaxList<StatementSyntax> GetUnwrappedStatements(SyntaxList<StatementSyntax> statements)
+        {
+            if (statements.Count == 1 && statements.First() is BlockSyntax block)
+            {
+                return block.Statements;
+            }
+            return statements;
         }
 
         public override void VisitCasePatternSwitchLabel(CasePatternSwitchLabelSyntax node)
