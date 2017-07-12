@@ -43,7 +43,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="aaa.cs" />
     <Compile Include="BoundedMailboxQueue.cs" />
     <Compile Include="Dispatcher.cs" />
     <Compile Include="Mailbox.cs" />

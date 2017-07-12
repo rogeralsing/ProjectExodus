@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Mailbox", "Proto.Mail
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Actor", "Proto.Actor\Proto.Actor.csproj", "{FC81CECE-10D2-480D-AAEF-5B29C6481810}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Proto.Router", "Proto.Router\Proto.Router.csproj", "{FA7E507A-9833-490A-AD39-83EF7DB4A30D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC81CECE-10D2-480D-AAEF-5B29C6481810}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA7E507A-9833-490A-AD39-83EF7DB4A30D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA7E507A-9833-490A-AD39-83EF7DB4A30D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA7E507A-9833-490A-AD39-83EF7DB4A30D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA7E507A-9833-490A-AD39-83EF7DB4A30D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
