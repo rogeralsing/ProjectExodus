@@ -50,7 +50,22 @@ namespace CsToKotlinTranspiler
                 {
                     var args = named.DelegateInvokeMethod.Parameters.Select(p => p.Type).Select(GetKotlinType);
                     var ret = GetKotlinType(named.DelegateInvokeMethod.ReturnType);
+                    var isAsync = IsAsync(named.DelegateInvokeMethod.ReturnType);
+                    if (isAsync)
+                    {
+                        return $"suspend ({string.Join(", ", args)}) -> {ret}";
+                    }
                     return $"({string.Join(", ", args)}) -> {ret}";
+                }
+
+                if (named.Name == "Task")
+                {
+                    if (named.IsGenericType)
+                    {
+                        var arg = named.TypeArguments.First();
+                        return GetKotlinType(arg);
+                    }
+                    return "Unit";
                 }
 
                 if (named.IsGenericType)
@@ -94,6 +109,7 @@ namespace CsToKotlinTranspiler
                 case nameof(Stack<object>): return "Stack";
                 case nameof(ConcurrentQueue<object>): return "ConcurrentLinkedQueue";
                 case nameof(ConcurrentDictionary<object, object>): return "ConcurrentHashMap";
+                case nameof(IReadOnlyCollection<object>): return "Collection";
                 default: return name;
             }
         }

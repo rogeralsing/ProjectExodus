@@ -8,9 +8,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+
 
 namespace CsToKotlinTranspiler
 {
@@ -100,10 +102,15 @@ namespace CsToKotlinTranspiler
         {
             foreach (var v in node.Declaration.Variables)
             {
+                var t = GetKotlinType(node.Declaration.Type);
+                if (t == "Unit")
+                {
+                    continue;
+                }
                 WriteModifiers(node.Modifiers);
                 var isReadOnly = FieldIsReadOnly(node);
                 Write(isReadOnly ? "val" : "var");
-                var t = GetKotlinType(node.Declaration.Type);
+                
                 var d = GetKotlinDefaultValue(node.Declaration.Type);
                 var nullable = v.Initializer == null && !isReadOnly;
                 if (v.Initializer != null)
@@ -743,8 +750,83 @@ namespace CsToKotlinTranspiler
 
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
-            //nameof(..)
-            base.VisitInvocationExpression(node);
+            if (node.Expression is MemberAccessExpressionSyntax member)
+            {
+                var methodName = member.Name.Identifier.Text;
+                var sym = _model.GetSymbolInfo(node).Symbol;
+                var containingTypeName = sym?.ContainingType?.Name;
+
+                switch (containingTypeName)
+                {
+                    case nameof(Enumerable):
+                        switch (methodName)
+                        {
+                            case nameof(Enumerable.Select):
+                                Visit(node.Expression);
+                                Write(".");
+                                Write("map");
+                                Visit(node.ArgumentList);
+                                break;
+                            case nameof(Enumerable.Where):
+                                Visit(node.Expression);
+                                Write(".");
+                                Write("filter");
+                                Visit(node.ArgumentList);
+                                break;
+                            case nameof(Enumerable.ToList):
+                                Visit(node.Expression);
+                                Write(".");
+                                Write("toList");
+                                Visit(node.ArgumentList);
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    case nameof(Task):
+                        switch (methodName)
+                        {
+                            case nameof(Task.FromResult):
+                                Write("");
+                                break;
+                        }
+                        break;
+                    case nameof(Console):
+                        switch (methodName)
+                        {
+                            case nameof(Console.WriteLine):
+                                Write("println");
+                                Visit(node.ArgumentList);
+                                break;
+                            case nameof(Console.Write):
+                                Write("print");
+                                Visit(node.ArgumentList);
+                                break;
+                            case nameof(Console.ReadLine):
+                                Write("readLine");
+                                Visit(node.ArgumentList);
+                                break;
+                        }
+                        break;
+                    default:
+                        Visit(member.Expression);
+                        Write(".");
+                        var name = member.Name.ToString();
+                        if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
+                        {
+                            name = ToCamelCase(name);
+                        }
+
+                        Write(name);
+                        Visit(node.ArgumentList);
+                        break;
+                }
+            }
+            else
+            {
+                Visit(node.Expression);
+                Visit(node.ArgumentList);
+            }
         }
 
         public override void VisitElementAccessExpression(ElementAccessExpressionSyntax node)
@@ -759,52 +841,16 @@ namespace CsToKotlinTranspiler
 
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
-            var methodName = node.Name.ToString();
+            var memberName = node.Name.ToString();
             var sym = _model.GetSymbolInfo(node).Symbol;
             var containingTypeName = sym?.ContainingType?.Name;
 
             switch (containingTypeName)
             {
-                case nameof(Enumerable):
-                    switch (methodName)
-                    {
-                        case nameof(Enumerable.Select):
-                            Visit(node.Expression);
-                            Write(".");
-                            Write("map");
-                            break;
-                        case nameof(Enumerable.Where):
-                            Visit(node.Expression);
-                            Write(".");
-                            Write("filter");
-                            break;
-                        case nameof(Enumerable.ToList):
-                            Visit(node.Expression);
-                            Write(".");
-                            Write("toList");
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case nameof(Console):
-                    switch (methodName)
-                    {
-                        case nameof(Console.WriteLine):
-                            Write("println");
-                            break;
-                        case nameof(Console.Write):
-                            Write("print");
-                            break;
-                        case nameof(Console.ReadLine):
-                            Write("readLine");
-                            break;
-                    }
-                    break;
                 default:
                     Visit(node.Expression);
                     Write(".");
-                    var name = node.Name.ToString();
+                    var name = memberName;
                     if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
                     {
                         name = ToCamelCase(name);
@@ -824,12 +870,28 @@ namespace CsToKotlinTranspiler
             Visit(node.WhenNotNull);
         }
 
+        private bool IsAsync(TypeSyntax type)
+        {
+            var s = GetTypeSymbol(type);
+            return IsAsync(s);
+        }
+
+        private static bool IsAsync(ITypeSymbol s)
+        {
+            return s is INamedTypeSymbol named && named.Name == "Task";
+        }
+
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
             var arg = GetArgList(node.ParameterList);
             var methodName = ToCamelCase(node.Identifier.Text);
             var ret = GetKotlinType(node.ReturnType);
             WriteModifiers(node.Modifiers);
+
+            if (IsAsync(node.ReturnType))
+            {
+                Write("suspend ");
+            }
 
             if (IsInterfaceMethod(node))
             {
@@ -1034,6 +1096,11 @@ namespace CsToKotlinTranspiler
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
+            //var t = _model.GetSymbolInfo(node).Symbol as IMethodSymbol;
+            //if (IsAsync(t.ReturnType))
+            //{
+            //    Write("suspend ");
+            //}
             if (node.Body is BinaryExpressionSyntax bin && bin.Left is IdentifierNameSyntax name)
             {
                 Write("{");
@@ -1072,6 +1139,11 @@ namespace CsToKotlinTranspiler
 
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
         {
+            //var t = _model.GetSymbolInfo(node).Symbol as IMethodSymbol;
+            //if (IsAsync(t.ReturnType))
+            //{
+            //    Write("suspend ");
+            //}
             Write("{");
             var arg = GetArgList(node.ParameterList);
             Write(arg);
