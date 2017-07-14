@@ -171,8 +171,9 @@ namespace CsToKotlinTranspiler
                     continue;
                 }
                 WriteModifiers(node.Modifiers);
+                var isMutated = IsMutated(v);
                 var isReadOnly = FieldIsReadOnly(node);
-                Write(isReadOnly ? "val" : "var");
+                Write(isReadOnly || !isMutated ? "val" : "var"); //readonly, const, non mutated fields
                 
                 var d = GetKotlinDefaultValue(node.Declaration.Type);
                 var nullable = v.Initializer == null && !isReadOnly;
@@ -912,7 +913,8 @@ namespace CsToKotlinTranspiler
 
         public override void VisitPostfixUnaryExpression(PostfixUnaryExpressionSyntax node)
         {
-            base.VisitPostfixUnaryExpression(node);
+            Visit(node.Operand);
+            Write(node.OperatorToken.Text);
         }
 
         public override void VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
