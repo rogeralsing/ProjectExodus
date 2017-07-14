@@ -51,11 +51,21 @@ namespace CsToKotlinTranspiler
                     switch (s.TypeKind)
                     {
                         case TypeKind.TypeParameter: return named.Name;
-                        case TypeKind.Struct: return GetKnownName(s.Name);
+                        case TypeKind.Struct:
+                        {
+                            if (named.Name == nameof(Nullable))
+                            {
+                                var arg = named.TypeArguments.First();
+                                var element = TranslateType(arg);
+                                return element + "?";
+                            }
+
+                            return GetKnownName(s.Name);
+                        }
                         case TypeKind.Delegate: return TranslateDelegateType(named);
                         case TypeKind.Class:
                         {
-                            if (named?.Name == "Task")
+                            if (named?.Name == nameof(Task))
                             {
                                 if (!named.IsGenericType)
                                 {
@@ -158,6 +168,7 @@ namespace CsToKotlinTranspiler
                 case nameof(Double): return "0.0";
                 case nameof(Single): return "0.0";
                 case nameof(Boolean): return "false";
+                case nameof(Nullable): return null;
                 default:
                     switch (s.TypeKind)
                     {
