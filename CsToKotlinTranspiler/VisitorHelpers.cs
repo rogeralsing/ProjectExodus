@@ -69,10 +69,15 @@ namespace CsToKotlinTranspiler
             return isInterfaceMethod;
         }
 
-        
+
 
         public string Run(SyntaxNode root)
         {
+            _assignments = (from exp in root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                            let symbol = _model.GetSymbolInfo(exp.Left).Symbol
+                            where symbol != null
+                            group exp by symbol).ToDictionary(g => g.Key, g => g.ToArray());
+
             Visit(root);
             return _sb.ToString();
         }

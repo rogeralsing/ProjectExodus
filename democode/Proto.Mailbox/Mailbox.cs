@@ -43,7 +43,7 @@ namespace Proto.Mailbox
     internal class DefaultMailbox : IMailbox
     {
         private readonly IMailboxStatistics[] _stats;
-        private readonly IMailboxQueue _systemMessages;
+        private readonly IMailboxQueue _systemMessages = null;
         private readonly IMailboxQueue _userMailbox;
         private IDispatcher _dispatcher;
         private IMessageInvoker _invoker;
@@ -55,6 +55,12 @@ namespace Proto.Mailbox
 
         public DefaultMailbox(IMailboxQueue systemMessages, IMailboxQueue userMailbox, params IMailboxStatistics[] stats)
         {
+            var x = 1;
+            x = 2;
+            x++;
+            x--;
+
+
             _systemMessages = systemMessages;
             _userMailbox = userMailbox;
             _stats = stats ?? new IMailboxStatistics[0];
