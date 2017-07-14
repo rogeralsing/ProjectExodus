@@ -18,9 +18,9 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private string GetKotlinType(TypeSyntax type)
+        private string TranslateType(TypeSyntax type)
         {
-            return GetKotlinType(GetTypeSymbol(type));
+            return TranslateType(GetTypeSymbol(type));
         }
 
         private ITypeSymbol GetTypeSymbol(TypeSyntax type)
@@ -39,51 +39,73 @@ namespace CsToKotlinTranspiler
             throw new NotSupportedException("Unknown TypeSyntax");
         }
 
-        private string GetKotlinType(ITypeSymbol s)
+        private string TranslateType(ITypeSymbol s)
         {
-            if (s.Kind == SymbolKind.ArrayType)
+            switch (s.Kind)
             {
-                var arr = (IArrayTypeSymbol) s;
-                return $"Array<{GetKotlinType(arr.ElementType)}>";
+                case SymbolKind.ArrayType:
+                    var arr = (IArrayTypeSymbol) s;
+                    return $"Array<{TranslateType(arr.ElementType)}>";
+                case SymbolKind.NamedType:
+                    var named = (INamedTypeSymbol) s;
+                    switch (s.TypeKind)
+                    {
+                        case TypeKind.TypeParameter: return named.Name;
+                        case TypeKind.Struct: return GetKnownName(s.Name);
+                        case TypeKind.Delegate: return TranslateDelegateType(named);
+                        case TypeKind.Class:
+                        {
+                            if (named?.Name == "Task")
+                            {
+                                if (!named.IsGenericType)
+                                {
+                                    return "Unit";
+                                }
+                                var arg = named.TypeArguments.First();
+                                return TranslateType(arg);
+                            }
+
+                            if (named.IsGenericType)
+                            {
+                                return TranslateGenericType(named);
+                            }
+
+                            return GetKnownName(s.Name);
+                            }
+                        case TypeKind.Interface:
+                        {
+                            var res = GetKnownName(s.Name);
+                            if (res.StartsWith("I") && char.IsUpper(res[1]))
+                            {
+                                res = res.Substring(1); //remove I-prefix of interface
+                            }
+                            return res;
+                        }
+                    }
+                    break;
             }
 
-            if (s is INamedTypeSymbol named)
-            {
-                if (s.TypeKind == TypeKind.Delegate)
-                {
-                    var args = named.DelegateInvokeMethod.Parameters.Select(p => p.Type).Select(GetKotlinType);
-                    var ret = GetKotlinType(named.DelegateInvokeMethod.ReturnType);
-                    var isAsync = IsAsync(named.DelegateInvokeMethod.ReturnType);
-                    if (isAsync)
-                    {
-                        return $"suspend ({string.Join(", ", args)}) -> {ret}";
-                    }
-                    return $"({string.Join(", ", args)}) -> {ret}";
-                }
-
-                if (named.Name == "Task")
-                {
-                    if (named.IsGenericType)
-                    {
-                        var arg = named.TypeArguments.First();
-                        return GetKotlinType(arg);
-                    }
-                    return "Unit";
-                }
-
-                if (named.IsGenericType)
-                {
-                    var name = GetGenericName(named.Name);
-
-                    var args = named.TypeArguments.Select(GetKotlinType);
-                    return $"{name}<{string.Join(", ", args)}>";
-                }
-            }
-
-            return GetName(s.Name);
+            return GetKnownName(s.Name);
         }
 
-        public static string GetName(string name)
+        private string TranslateGenericType(INamedTypeSymbol named)
+        {
+            var name = GetKnownGenericName(named.Name);
+            var args = named.TypeArguments.Select(TranslateType).ToArray();
+            var joined = string.Join(", ", args);
+            return $"{name}<{joined}>";
+        }
+
+        private string TranslateDelegateType(INamedTypeSymbol named)
+        {
+            var args = named.DelegateInvokeMethod.Parameters.Select(p => p.Type).Select(TranslateType).ToArray();
+            var joined = string.Join(", ", args);
+            var ret = TranslateType(named.DelegateInvokeMethod.ReturnType);
+            var isAsync = IsAsync(named.DelegateInvokeMethod.ReturnType);
+            return isAsync ? "suspend " : "" + $"({joined}) -> {ret}";
+        }
+
+        public static string GetKnownName(string name)
         {
             switch (name)
             {
@@ -99,12 +121,13 @@ namespace CsToKotlinTranspiler
                 case nameof(TimeSpan): return "Duration";
                 case nameof(ArgumentException): return "IllegalArgumentException";
                 case nameof(ManualResetEventSlim):
+                case nameof(ManualResetEvent):
                 case nameof(AutoResetEvent): return "CountDownLatch";
                 default: return name;
             }
         }
 
-        public static string GetGenericName(string name)
+        public static string GetKnownGenericName(string name)
         {
             switch (name)
             {
@@ -127,9 +150,7 @@ namespace CsToKotlinTranspiler
 
         private string GetKotlinDefaultValue(ITypeSymbol s)
         {
-            var str = s.Name;
-            var named = s as INamedTypeSymbol;
-            switch (str)
+            switch (s.Name)
             {
                 case nameof(TimeSpan): return "Duration.ZERO";
                 case nameof(Int64): return "0";
@@ -142,9 +163,10 @@ namespace CsToKotlinTranspiler
                     {
                         case TypeKind.Array: return "arrayOf()";
                         case TypeKind.Enum:
+                            var named = (INamedTypeSymbol) s;
                             return $"{named.Name}.{named.MemberNames.First()}";
                         case TypeKind.Struct:
-                            var t = GetKotlinType(s);
+                            var t = TranslateType(s);
                             return $"{t}()"; //structs are initialized to empty ctor
                         default: return null;
                     }

@@ -122,7 +122,7 @@ namespace CsToKotlinTranspiler
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
         {
             var name = ToCamelCase(node.Identifier.Text);
-            var t = GetKotlinType(node.Type);
+            var t = TranslateType(node.Type);
 
             WriteModifiers(node.Modifiers);
             if (IsInterfaceProperty(node))
@@ -165,7 +165,7 @@ namespace CsToKotlinTranspiler
         {
             foreach (var v in node.Declaration.Variables)
             {
-                var t = GetKotlinType(node.Declaration.Type);
+                var t = TranslateType(node.Declaration.Type);
                 if (t == "Unit")
                 {
                     continue;
@@ -280,7 +280,7 @@ namespace CsToKotlinTranspiler
                 Write(" : ");
                 Delimit(node.BaseList.Types, t =>
                 {
-                    var tn = GetKotlinType(t.Type);
+                    var tn = TranslateType(t.Type);
                     Write(tn);
                 });
             }
@@ -708,7 +708,7 @@ namespace CsToKotlinTranspiler
                         var c = i as CasePatternSwitchLabelSyntax;
                         var d = c.Pattern as DeclarationPatternSyntax;
 
-                        var t = GetKotlinType(d.Type);
+                        var t = TranslateType(d.Type);
                         Write(t);
                     });
 
@@ -807,7 +807,7 @@ namespace CsToKotlinTranspiler
             foreach (var c in node.Catches)
             {
                 var v = c.Declaration.Identifier.Text;
-                var t = GetKotlinType(c.Declaration.Type);
+                var t = TranslateType(c.Declaration.Type);
                 IndentWrite($"catch ({v} : {t})");
                 Visit(c.Block);
             }
@@ -882,7 +882,7 @@ namespace CsToKotlinTranspiler
         {
             var arg = GetArgList(node.ParameterList);
             var methodName = ToCamelCase(node.Identifier.Text);
-            var ret = GetKotlinType(node.ReturnType);
+            var ret = TranslateType(node.ReturnType);
             WriteModifiers(node.Modifiers);
 
             if (IsAsync(node.ReturnType))
@@ -1188,7 +1188,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
         {
-            var t = GetKotlinType(node.Type);
+            var t = TranslateType(node.Type);
             Write(t);
             Visit(node.ArgumentList);
         }
@@ -1243,7 +1243,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitArrayCreationExpression(ArrayCreationExpressionSyntax node)
         {
-            var t = GetKotlinType(node.Type);
+            var t = TranslateType(node.Type);
             Write(t + "()");
             //TODO: handle initializer
         }
@@ -1406,7 +1406,7 @@ namespace CsToKotlinTranspiler
                 }
                 
 
-                Write($" {v.Identifier} : {GetKotlinType(node.Type)} = ");
+                Write($" {v.Identifier} : {TranslateType(node.Type)} = ");
                 Visit(v.Initializer);
 
                 NewLine();
@@ -1417,7 +1417,7 @@ namespace CsToKotlinTranspiler
         {
             var arg = GetArgList(node.ParameterList);
             var methodName = ToCamelCase(node.Identifier.Text);
-            var ret = GetKotlinType(node.ReturnType);
+            var ret = TranslateType(node.ReturnType);
             if (ret == "Unit")
             {
                 IndentWrite($"fun {methodName} ({arg})");
@@ -1585,7 +1585,7 @@ namespace CsToKotlinTranspiler
         public override void VisitTypeOfExpression(TypeOfExpressionSyntax node)
         {
             Write("typeof(");
-            var t = GetKotlinType(node.Type);
+            var t = TranslateType(node.Type);
             Write(")");
         }
 
@@ -1627,7 +1627,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDeclarationPattern(DeclarationPatternSyntax node)
         {
-            var t = GetKotlinType(node.Type);
+            var t = TranslateType(node.Type);
             Write(t);
             Write(" /* " + node.Designation + "  */");
         }

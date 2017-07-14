@@ -31,7 +31,7 @@ namespace CsToKotlinTranspiler
                         return p.Identifier.ToString();
                     }
 
-                    return p.Identifier + " : " + GetKotlinType(p.Type);
+                    return p.Identifier + " : " + TranslateType(p.Type);
                 }).ToList();
             }
 
