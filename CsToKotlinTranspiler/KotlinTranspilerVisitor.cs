@@ -175,7 +175,7 @@ namespace CsToKotlinTranspiler
                 var isReadOnly = FieldIsReadOnly(node);
                 Write(isReadOnly || !isMutated ? "val" : "var"); //readonly, const, non mutated fields
                 
-                var d = GetKotlinDefaultValue(node.Declaration.Type);
+                var d = TranslateDefaultValue(node.Declaration.Type);
                 var nullable = v.Initializer == null && !isReadOnly;
                 if (v.Initializer != null)
                 {
@@ -327,7 +327,8 @@ namespace CsToKotlinTranspiler
         {
             NewLine();
             WriteModifiers(node.Modifiers);
-            Write($"interface {node.Identifier} {{");
+            var name = TranslateInterfaceType(node.Identifier.Text);
+            Write($"interface {name} {{");
             NewLine();
             _indent++;
             foreach (var m in node.Members)
@@ -537,9 +538,8 @@ namespace CsToKotlinTranspiler
                 switch (guard.Kind()) {
                     case SyntaxKind.LessThanExpression:
                         Visit(init.Initializer.Value);
-                        Write("..");
+                        Write(" until ");
                         Visit(guard.Right);
-                        Write("-1");
                         break;
                     case SyntaxKind.LessThanOrEqualExpression:
                         Visit(init.Initializer.Value);
@@ -1188,7 +1188,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
         {
-            var t = TranslateType(node.Type);
+            var t = TranslateObjectCreator(node.Type);
             Write(t);
             Visit(node.ArgumentList);
         }
@@ -1578,7 +1578,7 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDefaultExpression(DefaultExpressionSyntax node)
         {
-            var t = GetKotlinDefaultValue(node.Type) ?? "null";
+            var t = TranslateDefaultValue(node.Type) ?? "null";
             Write(t);
         }
 

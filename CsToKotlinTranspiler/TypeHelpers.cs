@@ -84,18 +84,28 @@ namespace CsToKotlinTranspiler
                             }
                         case TypeKind.Interface:
                         {
-                            var res = GetKnownName(s.Name);
-                            if (res.StartsWith("I") && char.IsUpper(res[1]))
-                            {
-                                res = res.Substring(1); //remove I-prefix of interface
-                            }
-                            return res;
+                            return TranslateInterfaceType(s);
                         }
                     }
                     break;
             }
 
             return GetKnownName(s.Name);
+        }
+
+        private static string TranslateInterfaceType(ITypeSymbol s)
+        {
+            var res = GetKnownName(s.Name);
+            return TranslateInterfaceType(res);
+        }
+
+        private static string TranslateInterfaceType(string res)
+        {
+            if (res.StartsWith("I") && char.IsUpper(res[1]))
+            {
+                res = res.Substring(1); //remove I-prefix of interface
+            }
+            return res;
         }
 
         private string TranslateGenericType(INamedTypeSymbol named)
@@ -112,7 +122,7 @@ namespace CsToKotlinTranspiler
             var joined = string.Join(", ", args);
             var ret = TranslateType(named.DelegateInvokeMethod.ReturnType);
             var isAsync = IsAsync(named.DelegateInvokeMethod.ReturnType);
-            return isAsync ? "suspend " : "" + $"({joined}) -> {ret}";
+            return (isAsync ? "suspend " : "") + $"({joined}) -> {ret}";
         }
 
         public static string GetKnownName(string name)
@@ -141,6 +151,7 @@ namespace CsToKotlinTranspiler
         {
             switch (name)
             {
+                case nameof(TaskCompletionSource<object>): return "CompletableDeferred";
                 case nameof(List<object>): return "MutableList";
                 case nameof(ISet<object>):
                 case nameof(HashSet<object>): return "MutableSet";
@@ -152,13 +163,13 @@ namespace CsToKotlinTranspiler
             }
         }
 
-        private string GetKotlinDefaultValue(TypeSyntax type)
+        private string TranslateDefaultValue(TypeSyntax type)
         {
             var s = GetTypeSymbol(type);
-            return GetKotlinDefaultValue(s);
+            return TranslateDefaultValue(s);
         }
 
-        private string GetKotlinDefaultValue(ITypeSymbol s)
+        private string TranslateDefaultValue(ITypeSymbol s)
         {
             switch (s.Name)
             {
@@ -181,6 +192,24 @@ namespace CsToKotlinTranspiler
                             return $"{t}()"; //structs are initialized to empty ctor
                         default: return null;
                     }
+            }
+        }
+
+        private string TranslateObjectCreator(TypeSyntax type)
+        {
+            var s = GetTypeSymbol(type);
+            return TranslateObjectCreator(s);
+        }
+
+        private string TranslateObjectCreator(ITypeSymbol s)
+        {
+            switch (s.Name)
+            {
+                case nameof(HashSet<object>): return "mutableSetOf";
+                case nameof(List<object>): return "mutableListOf";
+                default:
+                    var res = TranslateType(s);
+                    return res;
             }
         }
 
