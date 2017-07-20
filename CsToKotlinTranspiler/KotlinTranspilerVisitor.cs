@@ -1142,9 +1142,16 @@ namespace CsToKotlinTranspiler
             //    Write("suspend ");
             //}
             Write("{");
-            var arg = GetArgList(node.ParameterList);
-            Write(arg);
-            Write(" -> ");
+            if (node.ParameterList.Parameters.Any())
+            {
+                var arg = GetArgList(node.ParameterList);
+                Write(arg);
+                Write(" -> ");
+            }
+            else
+            {
+                Write(" ");
+            }
             if (node.Body is BlockSyntax block)
             {
                 NewLine();
@@ -1154,12 +1161,12 @@ namespace CsToKotlinTranspiler
                     Visit(s);
                 }
                 _indent--;
-                IndentWriteLine("}");
+                IndentWriteLine(" }");
             }
             else
             {
                 Visit(node.Body);
-                Write("}");
+                Write(" }");
             }
         }
 
@@ -1404,9 +1411,8 @@ namespace CsToKotlinTranspiler
                 {
                     IndentWrite("val");
                 }
-                
-
-                Write($" {v.Identifier} : {TranslateType(node.Type)} = ");
+                //Write($" {v.Identifier} : {TranslateType(node.Type)} = ");
+                Write($" {v.Identifier} = ");
                 Visit(v.Initializer);
 
                 NewLine();
@@ -1584,9 +1590,9 @@ namespace CsToKotlinTranspiler
 
         public override void VisitTypeOfExpression(TypeOfExpressionSyntax node)
         {
-            Write("typeof(");
             var t = TranslateType(node.Type);
-            Write(")");
+            Write(t);
+            Write(".javaClass");
         }
 
         public override void VisitAttribute(AttributeSyntax node)

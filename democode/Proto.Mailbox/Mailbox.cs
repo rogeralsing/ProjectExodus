@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Proto.Mailbox
 {
-    internal static class MailboxStatus
+    public static class MailboxStatus
     {
         public const int Idle = 0;
         public const int Busy = 1;
@@ -40,7 +40,7 @@ namespace Proto.Mailbox
         }
     }
 
-    internal class DefaultMailbox : IMailbox
+    public class DefaultMailbox : IMailbox
     {
         private readonly IMailboxStatistics[] _stats;
         private readonly IMailboxQueue _systemMessages = null;
@@ -51,7 +51,7 @@ namespace Proto.Mailbox
         private int _status = MailboxStatus.Idle;
         private bool _suspended;
 
-        internal int Status => _status;
+        public int Status => _status;
 
         public DefaultMailbox(IMailboxQueue systemMessages, IMailboxQueue userMailbox, params IMailboxStatistics[] stats)
         {

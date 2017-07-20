@@ -6,7 +6,7 @@
 
 namespace Proto.Mailbox
 {
-    internal class BoundedMailboxQueue : IMailboxQueue
+    public class BoundedMailboxQueue : IMailboxQueue
     {
         private readonly MPMCQueue _messages;
 

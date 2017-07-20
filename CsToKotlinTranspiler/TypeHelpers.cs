@@ -286,6 +286,132 @@ namespace CsToKotlinTranspiler
                                     break;
                             }
                             break;
+                        case nameof(TimeSpan):
+                        {
+                            switch (methodName)
+                            {
+                                case nameof(TimeSpan.FromSeconds):
+                                    Write("Duration.ofSeconds");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                case nameof(TimeSpan.FromMilliseconds):
+                                    Write("Duration.ofMillis");
+                                    Visit(node.ArgumentList);
+                                    break;
+
+                                }
+                            break;
+                        }
+                        case "Assert":
+                        {
+                            switch (methodName)
+                            {
+                                case "Equal":
+                                {
+                                    Write("assertEquals");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "NotEqual":
+                                {
+                                    Write("assertNotEquals");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                    case "Same":
+                                {
+                                    Write("assertSame");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "True":
+                                {
+                                    Write("assertTrue");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "False":
+                                {
+                                    Write("assertFalse");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "Contains":
+                                {
+                                    Write("assertTrue (");
+                                    var element = node.ArgumentList.Arguments.First();
+                                    var collection = node.ArgumentList.Arguments.Last();
+                                    Visit(collection);
+                                    Write(".contains(");
+                                    Visit(element);
+                                    Write(")");
+                                    break;
+                                }
+                                case "DoesNotContain":
+                                {
+                                    Write("assertFalse (");
+                                    var element = node.ArgumentList.Arguments.First();
+                                    var collection = node.ArgumentList.Arguments.Last();
+                                    Visit(collection);
+                                    Write(".contains(");
+                                    Visit(element);
+                                    Write(")");
+                                    break;
+                                }
+                                    case "ThrowsAsync":
+                                {
+                                    var n = member.Name as GenericNameSyntax;
+                                    var genericArg = n.TypeArgumentList.Arguments.First();
+                                    var t = TranslateType(genericArg);
+                                    Write($"assertFailsWith<{t}>");
+
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "IsType" when node.ArgumentList.Arguments.Count == 2:
+                                {
+                                    Write("assertTrue (");
+                                    var element = node.ArgumentList.Arguments.First().Expression as TypeOfExpressionSyntax;
+                                    var t = TranslateType(element.Type);
+
+
+                                    var collection = node.ArgumentList.Arguments.Last();
+                                    Visit(collection);
+                                    Write($" is {t})");
+                                    break;
+                                }
+                                case "IsType" when node.ArgumentList.Arguments.Count == 1:
+                                {
+                                    Write("assertTrue (");
+                                    var element = member.Name as GenericNameSyntax;
+
+                                    var t = TranslateType(element.TypeArgumentList.Arguments.First());
+
+
+                                    var collection = node.ArgumentList.Arguments.Last();
+                                    Visit(collection);
+                                    Write($" is {t})");
+                                    break;
+                                }
+                                    case "Null":
+                                {
+                                    Write("assertNull");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                case "NotNull":
+                                {
+                                    Write("assertNotNull");
+                                    Visit(node.ArgumentList);
+                                    break;
+                                }
+                                    default:
+                                {
+                                    break;
+                                }
+                            }
+                            break;
+                        }
                         default:
                             Visit(member.Expression);
                             Write(".");
