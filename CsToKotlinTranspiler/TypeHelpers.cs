@@ -81,7 +81,7 @@ namespace CsToKotlinTranspiler
                             }
 
                             return GetKnownName(s.Name);
-                            }
+                        }
                         case TypeKind.Interface:
                         {
                             return TranslateInterfaceType(s);
@@ -130,7 +130,7 @@ namespace CsToKotlinTranspiler
             switch (name)
             {
                 case "Void": return "Unit";
-                
+
                 case nameof(Object): return "Any";
                 case nameof(Int32): return "Int";
                 case nameof(Int64): return "Long";
@@ -222,6 +222,15 @@ namespace CsToKotlinTranspiler
                     var sym = CSharpExtensions.GetSymbolInfo(_model, node).Symbol;
                     var containingTypeName = sym?.ContainingType?.Name;
 
+                    if (methodName == "Tell")
+                    {
+                        Visit(member.Expression);
+                        Write(".");
+                        Write("send");
+                        Visit(node.ArgumentList);
+                        break;
+                    }
+
                     switch (containingTypeName)
                     {
                         //case nameof(AutoResetEvent):
@@ -299,7 +308,7 @@ namespace CsToKotlinTranspiler
                                     Visit(node.ArgumentList);
                                     break;
 
-                                }
+                            }
                             break;
                         }
                         case "Assert":
@@ -318,7 +327,7 @@ namespace CsToKotlinTranspiler
                                     Visit(node.ArgumentList);
                                     break;
                                 }
-                                    case "Same":
+                                case "Same":
                                 {
                                     Write("assertSame");
                                     Visit(node.ArgumentList);
@@ -344,7 +353,7 @@ namespace CsToKotlinTranspiler
                                     Visit(collection);
                                     Write(".contains(");
                                     Visit(element);
-                                    Write(")");
+                                    Write("))");
                                     break;
                                 }
                                 case "DoesNotContain":
@@ -355,10 +364,10 @@ namespace CsToKotlinTranspiler
                                     Visit(collection);
                                     Write(".contains(");
                                     Visit(element);
-                                    Write(")");
+                                    Write("))");
                                     break;
                                 }
-                                    case "ThrowsAsync":
+                                case "ThrowsAsync":
                                 {
                                     var n = member.Name as GenericNameSyntax;
                                     var genericArg = n.TypeArgumentList.Arguments.First();
@@ -393,7 +402,7 @@ namespace CsToKotlinTranspiler
                                     Write($" is {t})");
                                     break;
                                 }
-                                    case "Null":
+                                case "Null":
                                 {
                                     Write("assertNull");
                                     Visit(node.ArgumentList);
@@ -405,7 +414,7 @@ namespace CsToKotlinTranspiler
                                     Visit(node.ArgumentList);
                                     break;
                                 }
-                                    default:
+                                default:
                                 {
                                     break;
                                 }
@@ -427,16 +436,16 @@ namespace CsToKotlinTranspiler
                     }
                     break;
                 //  id.Call()
-                case IdentifierNameSyntax _:                
+                case IdentifierNameSyntax _:
                 // .Call()
-                case MemberBindingExpressionSyntax _:      
+                case MemberBindingExpressionSyntax _:
                     Visit(node.Expression);
                     Visit(node.ArgumentList);
                     break;
                 default:
                     throw new NotSupportedException();
             }
-           
+
         }
     }
 }

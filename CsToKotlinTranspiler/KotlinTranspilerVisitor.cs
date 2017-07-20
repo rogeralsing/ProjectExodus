@@ -848,10 +848,17 @@ namespace CsToKotlinTranspiler
                     Visit(node.Expression);
                     Write(".");
                     var name = memberName;
+                    if (name == "Length" || name == "Count")
+                    {
+                        Write("count()");
+                        return;
+                    }
                     if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
                     {
                         name = ToCamelCase(name);
                     }
+
+                    
      
                     Write(name);
                     break;

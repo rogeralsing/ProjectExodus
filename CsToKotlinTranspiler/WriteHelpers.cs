@@ -25,7 +25,7 @@ namespace CsToKotlinTranspiler
         }
 
         private void Write(string text)
-        {
+        {         
             Console.Write(text);
             _sb.Append(text);
         }
