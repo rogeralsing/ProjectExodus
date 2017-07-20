@@ -17,7 +17,6 @@ namespace CsToKotlinTranspiler
         static void Main(string[] args)
         {
             Run().Wait();
-            Console.ReadLine();
         }
 
         private static async Task Run()

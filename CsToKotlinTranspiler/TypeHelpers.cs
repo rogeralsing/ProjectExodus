@@ -18,10 +18,7 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private string TranslateType(TypeSyntax type)
-        {
-            return TranslateType(GetTypeSymbol(type));
-        }
+        private string TranslateType(TypeSyntax type) => TranslateType(GetTypeSymbol(type));
 
         private ITypeSymbol GetTypeSymbol(TypeSyntax type)
         {
@@ -93,11 +90,7 @@ namespace CsToKotlinTranspiler
             return GetKnownName(s.Name);
         }
 
-        private static string TranslateInterfaceType(ITypeSymbol s)
-        {
-            var res = GetKnownName(s.Name);
-            return TranslateInterfaceType(res);
-        }
+        private static string TranslateInterfaceType(ITypeSymbol s) => TranslateInterfaceType(GetKnownName(s.Name));
 
         private static string TranslateInterfaceType(string res)
         {
@@ -151,7 +144,7 @@ namespace CsToKotlinTranspiler
         {
             switch (name)
             {
-                case nameof(TaskCompletionSource<object>): return "CompletableDeferred";
+                case nameof(TaskCompletionSource<object>): return "CompletableFuture";
                 case nameof(List<object>): return "MutableList";
                 case nameof(ISet<object>):
                 case nameof(HashSet<object>): return "MutableSet";
@@ -218,226 +211,35 @@ namespace CsToKotlinTranspiler
             switch (node.Expression)
             {
                 case MemberAccessExpressionSyntax member:
+                {
                     var methodName = member.Name.Identifier.Text;
                     var sym = CSharpExtensions.GetSymbolInfo(_model, node).Symbol;
                     var containingTypeName = sym?.ContainingType?.Name;
 
-                    if (methodName == "Tell")
+                    var signature = containingTypeName + "." + methodName;
+                    if (_methodTranslators.TryGetValue(signature, out var body))
+                    {
+                        body(node, member);
+                    }
+                    else
                     {
                         Visit(member.Expression);
                         Write(".");
-                        Write("send");
-                        Visit(node.ArgumentList);
-                        break;
-                    }
-
-                    switch (containingTypeName)
-                    {
-                        //case nameof(AutoResetEvent):
-                        //case nameof(ManualResetEvent):
-                        //case nameof(ManualResetEventSlim):
-                        case nameof(EventWaitHandle):
-                            switch (methodName)
-                            {
-                                case nameof(AutoResetEvent.Set):
-                                    Visit(member.Expression);
-                                    Write(".countDown()");
-                                    break;
-                            }
-                            break;
-                        case nameof(Enumerable):
-                            switch (methodName)
-                            {
-                                case nameof(Enumerable.Select):
-                                    Visit(node.Expression);
-                                    Write(".");
-                                    Write("map");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                case nameof(Enumerable.Where):
-                                    Visit(node.Expression);
-                                    Write(".");
-                                    Write("filter");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                case nameof(Enumerable.ToList):
-                                    Visit(node.Expression);
-                                    Write(".");
-                                    Write("toList");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case nameof(Task):
-                            switch (methodName)
-                            {
-                                case nameof(Task.FromResult):
-                                    Write("");
-                                    break;
-                            }
-                            break;
-                        case nameof(Console):
-                            switch (methodName)
-                            {
-                                case nameof(Console.WriteLine):
-                                    Write("println");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                case nameof(Console.Write):
-                                    Write("print");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                case nameof(Console.ReadLine):
-                                    Write("readLine");
-                                    Visit(node.ArgumentList);
-                                    break;
-                            }
-                            break;
-                        case nameof(TimeSpan):
+                        var name = member.Name.ToString();
+                        if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
                         {
-                            switch (methodName)
-                            {
-                                case nameof(TimeSpan.FromSeconds):
-                                    Write("Duration.ofSeconds");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                case nameof(TimeSpan.FromMilliseconds):
-                                    Write("Duration.ofMillis");
-                                    Visit(node.ArgumentList);
-                                    break;
-
-                            }
-                            break;
+                            name = ToCamelCase(name);
                         }
-                        case "Assert":
+
+                        Write(name);
+                        if (sym.Kind == SymbolKind.Method)
                         {
-                            switch (methodName)
-                            {
-                                case "Equal":
-                                {
-                                    Write("assertEquals");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "NotEqual":
-                                {
-                                    Write("assertNotEquals");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "Same":
-                                {
-                                    Write("assertSame");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "True":
-                                {
-                                    Write("assertTrue");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "False":
-                                {
-                                    Write("assertFalse");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "Contains":
-                                {
-                                    Write("assertTrue (");
-                                    var element = node.ArgumentList.Arguments.First();
-                                    var collection = node.ArgumentList.Arguments.Last();
-                                    Visit(collection);
-                                    Write(".contains(");
-                                    Visit(element);
-                                    Write("))");
-                                    break;
-                                }
-                                case "DoesNotContain":
-                                {
-                                    Write("assertFalse (");
-                                    var element = node.ArgumentList.Arguments.First();
-                                    var collection = node.ArgumentList.Arguments.Last();
-                                    Visit(collection);
-                                    Write(".contains(");
-                                    Visit(element);
-                                    Write("))");
-                                    break;
-                                }
-                                case "ThrowsAsync":
-                                {
-                                    var n = member.Name as GenericNameSyntax;
-                                    var genericArg = n.TypeArgumentList.Arguments.First();
-                                    var t = TranslateType(genericArg);
-                                    Write($"assertFailsWith<{t}>");
-
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "IsType" when node.ArgumentList.Arguments.Count == 2:
-                                {
-                                    Write("assertTrue (");
-                                    var element = node.ArgumentList.Arguments.First().Expression as TypeOfExpressionSyntax;
-                                    var t = TranslateType(element.Type);
-
-
-                                    var collection = node.ArgumentList.Arguments.Last();
-                                    Visit(collection);
-                                    Write($" is {t})");
-                                    break;
-                                }
-                                case "IsType" when node.ArgumentList.Arguments.Count == 1:
-                                {
-                                    Write("assertTrue (");
-                                    var element = member.Name as GenericNameSyntax;
-
-                                    var t = TranslateType(element.TypeArgumentList.Arguments.First());
-
-
-                                    var collection = node.ArgumentList.Arguments.Last();
-                                    Visit(collection);
-                                    Write($" is {t})");
-                                    break;
-                                }
-                                case "Null":
-                                {
-                                    Write("assertNull");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                case "NotNull":
-                                {
-                                    Write("assertNotNull");
-                                    Visit(node.ArgumentList);
-                                    break;
-                                }
-                                default:
-                                {
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                        default:
-                            Visit(member.Expression);
-                            Write(".");
-                            var name = member.Name.ToString();
-                            if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
-                            {
-                                name = ToCamelCase(name);
-                            }
-
-                            Write(name);
                             Visit(node.ArgumentList);
-                            break;
+                        }
                     }
                     break;
-                //  id.Call()
+                }
                 case IdentifierNameSyntax _:
-                // .Call()
                 case MemberBindingExpressionSyntax _:
                     Visit(node.Expression);
                     Visit(node.ArgumentList);

@@ -8,74 +8,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
-using AnonymousObjectCreationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax;
-using ArgumentListSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentListSyntax;
-using ArgumentSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax;
-using ArrayCreationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArrayCreationExpressionSyntax;
-using ArrayRankSpecifierSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ArrayRankSpecifierSyntax;
-using AttributeListSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax;
-using AttributeSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.AttributeSyntax;
-using AwaitExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.AwaitExpressionSyntax;
-using BinaryExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.BinaryExpressionSyntax;
-using CastExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.CastExpressionSyntax;
-using ConditionalAccessExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ConditionalAccessExpressionSyntax;
-using ContinueStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ContinueStatementSyntax;
-using DocumentationCommentTriviaSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.DocumentationCommentTriviaSyntax;
-using DoStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.DoStatementSyntax;
-using EmptyStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.EmptyStatementSyntax;
-using ExpressionStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionStatementSyntax;
-using FieldDeclarationSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.FieldDeclarationSyntax;
-using ForEachStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ForEachStatementSyntax;
-using ForStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ForStatementSyntax;
-using FromClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.FromClauseSyntax;
-using IdentifierNameSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax;
-using IfStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.IfStatementSyntax;
-using IncompleteMemberSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.IncompleteMemberSyntax;
-using InterpolatedStringExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InterpolatedStringExpressionSyntax;
-using InterpolatedStringTextSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InterpolatedStringTextSyntax;
-using InterpolationAlignmentClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InterpolationAlignmentClauseSyntax;
-using InterpolationFormatClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InterpolationFormatClauseSyntax;
-using InterpolationSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InterpolationSyntax;
-using InvocationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax;
-using JoinClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.JoinClauseSyntax;
-using LetClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax;
-using LiteralExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.LiteralExpressionSyntax;
-using LocalDeclarationStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax;
-using MemberAccessExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.MemberAccessExpressionSyntax;
-using NullableTypeSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.NullableTypeSyntax;
-using ObjectCreationExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax;
-using OrderByClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.OrderByClauseSyntax;
-using OrderingSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.OrderingSyntax;
-using ParameterListSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax;
-using ParameterSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax;
-using ParenthesizedExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax;
-using PredefinedTypeSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.PredefinedTypeSyntax;
-using QueryExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.QueryExpressionSyntax;
-using ReturnStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ReturnStatementSyntax;
-using SelectClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.SelectClauseSyntax;
-using SkippedTokensTriviaSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.SkippedTokensTriviaSyntax;
-using StatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax;
-using ThrowStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.ThrowStatementSyntax;
-using TryStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TryStatementSyntax;
-using TupleElementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TupleElementSyntax;
-using TupleExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TupleExpressionSyntax;
-using TupleTypeSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax;
-using TypeConstraintSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeConstraintSyntax;
-using TypeOfExpressionSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeOfExpressionSyntax;
-using TypeParameterConstraintClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterConstraintClauseSyntax;
-using TypeParameterListSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterListSyntax;
-using TypeParameterSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeParameterSyntax;
-using TypeSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax;
-using UsingStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.UsingStatementSyntax;
-using VariableDeclaratorSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.VariableDeclaratorSyntax;
-using WhereClauseSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.WhereClauseSyntax;
-using WhileStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.WhileStatementSyntax;
-using YieldStatementSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.YieldStatementSyntax;
+
 
 namespace CsToKotlinTranspiler
 {
@@ -173,23 +109,24 @@ namespace CsToKotlinTranspiler
                 WriteModifiers(node.Modifiers);
                 var isMutated = IsMutated(v);
                 var isReadOnly = FieldIsReadOnly(node);
-                Write(isReadOnly || !isMutated ? "val" : "var"); //readonly, const, non mutated fields
+               
                 
                 var d = TranslateDefaultValue(node.Declaration.Type);
                 var nullable = v.Initializer == null && !isReadOnly;
                 if (v.Initializer != null)
                 {
+                    Write(isReadOnly || !isMutated ? "val" : "var"); //readonly, const, non mutated fields
                     Write($" {v.Identifier} : {t} = ");
                     Visit(v.Initializer.Value);
                 }
                 else if (d != null)
                 {
+                    Write(isReadOnly || !isMutated ? "val" : "var"); //readonly, const, non mutated fields
                     Write($" {v.Identifier} : {t} = {d}");
                 }
                 else if (nullable)
                 {
-
-                    Write($" {v.Identifier} : {t}? = null");
+                    Write($"lateinit var {v.Identifier} : {t}");
                 }
                 else
                 {
@@ -841,30 +778,25 @@ namespace CsToKotlinTranspiler
             var memberName = node.Name.ToString();
             var sym = _model.GetSymbolInfo(node).Symbol;
             var containingTypeName = sym?.ContainingType?.Name;
-
-            switch (containingTypeName)
+            if (sym.Kind == SymbolKind.Method)
             {
-                default:
-                    Visit(node.Expression);
-                    Write(".");
-                    var name = memberName;
-                    if (name == "Length" || name == "Count")
-                    {
-                        Write("count()");
-                        return;
-                    }
-                    if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
-                    {
-                        name = ToCamelCase(name);
-                    }
-
-                    
-     
-                    Write(name);
-                    break;
+                
             }
 
-            //  base.VisitMemberAccessExpression(node);
+            Visit(node.Expression);
+            Write(".");
+            var name = memberName;
+            if (name == "Length" || name == "Count")
+            {
+                Write("count()");
+                return;
+            }
+            if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
+            {
+                name = ToCamelCase(name);
+            }
+
+            Write(name);
         }
 
         public override void VisitConditionalAccessExpression(ConditionalAccessExpressionSyntax node)
@@ -1090,7 +1022,10 @@ namespace CsToKotlinTranspiler
 
         public override void VisitCastExpression(CastExpressionSyntax node)
         {
-            base.VisitCastExpression(node);
+            Visit(node.Expression);
+            Write(" as ");
+            var t = TranslateType(node.Type);
+            Write(t);
         }
 
         public override void VisitAnonymousMethodExpression(AnonymousMethodExpressionSyntax node)

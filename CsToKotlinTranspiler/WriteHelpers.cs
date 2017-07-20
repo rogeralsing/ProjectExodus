@@ -25,7 +25,11 @@ namespace CsToKotlinTranspiler
         }
 
         private void Write(string text)
-        {         
+        {
+            if (text == "fromProducer")
+            {
+                
+            }
             Console.Write(text);
             _sb.Append(text);
         }

@@ -73,6 +73,7 @@ namespace CsToKotlinTranspiler
 
         public string Run(SyntaxNode root)
         {
+            Setup();
             _assignments = (from exp in root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
                             let symbol = _model.GetSymbolInfo(exp.Left).Symbol
                             where symbol != null
@@ -83,3 +84,5 @@ namespace CsToKotlinTranspiler
         }
     }
 }
+ 
+ 
