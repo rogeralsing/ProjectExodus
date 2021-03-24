@@ -27,6 +27,7 @@ namespace CsToKotlinTranspiler
             {
                 return ti.Type;
             }
+
             var s = _model.GetSymbolInfo(type).Symbol;
             if (s != null)
             {
@@ -50,14 +51,15 @@ namespace CsToKotlinTranspiler
                         case TypeKind.TypeParameter: return named.Name;
                         case TypeKind.Struct:
                         {
-                            if (named.Name == nameof(Nullable))
+                            if (named.Name != nameof(Nullable))
                             {
-                                var arg = named.TypeArguments.First();
-                                var element = TranslateType(arg);
-                                return element + "?";
+                                return GetKnownName(s.Name);
                             }
 
-                            return GetKnownName(s.Name);
+                            var arg = named.TypeArguments.First();
+                            var element = TranslateType(arg);
+                            return element + "?";
+
                         }
                         case TypeKind.Delegate: return TranslateDelegateType(named);
                         case TypeKind.Class:
@@ -68,6 +70,7 @@ namespace CsToKotlinTranspiler
                                 {
                                     return "Unit";
                                 }
+
                                 var arg = named.TypeArguments.First();
                                 return TranslateType(arg);
                             }
@@ -84,6 +87,7 @@ namespace CsToKotlinTranspiler
                             return TranslateInterfaceType(s);
                         }
                     }
+
                     break;
             }
 
@@ -98,6 +102,7 @@ namespace CsToKotlinTranspiler
             {
                 res = res.Substring(1); //remove I-prefix of interface
             }
+
             return res;
         }
 
@@ -237,6 +242,7 @@ namespace CsToKotlinTranspiler
                             Visit(node.ArgumentList);
                         }
                     }
+
                     break;
                 }
                 case IdentifierNameSyntax _:
@@ -247,7 +253,6 @@ namespace CsToKotlinTranspiler
                 default:
                     throw new NotSupportedException();
             }
-
         }
     }
 }

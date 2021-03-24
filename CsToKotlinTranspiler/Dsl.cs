@@ -7,10 +7,12 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private readonly Dictionary<string, Action<InvocationExpressionSyntax, MemberAccessExpressionSyntax>> _methodTranslators = new Dictionary<string, Action<InvocationExpressionSyntax, MemberAccessExpressionSyntax>>();
-        public void Translate(string signature, Action<InvocationExpressionSyntax,MemberAccessExpressionSyntax> body)
+        private readonly Dictionary<string, Action<InvocationExpressionSyntax, MemberAccessExpressionSyntax>>
+            _methodTranslators = new();
+
+        public void Translate(string signature, Action<InvocationExpressionSyntax, MemberAccessExpressionSyntax> body)
         {
-            _methodTranslators.Add(signature,body);
+            _methodTranslators.Add(signature, body);
         }
 
         public void Setup()
@@ -30,7 +32,7 @@ namespace CsToKotlinTranspiler
                 Write("readln");
                 Visit(node.ArgumentList);
             });
-            Translate("PID.Tell", (node,member) =>
+            Translate("PID.Tell", (node, member) =>
             {
                 Visit(member.Expression);
                 Write(".send");
@@ -146,6 +148,7 @@ namespace CsToKotlinTranspiler
                     Visit(collection);
                     Write($" is {t})");
                 }
+
                 if (node.ArgumentList.Arguments.Count == 2)
                 {
                     Write("assertTrue (");
@@ -165,8 +168,8 @@ namespace CsToKotlinTranspiler
             {
                 Write("assertNotNull");
                 Visit(node.ArgumentList);
-            }); 
-            
+            });
+
             Translate("EventWaitHandle.Set", (node, member) =>
             {
                 Visit(member.Expression);
@@ -210,7 +213,7 @@ namespace CsToKotlinTranspiler
                 Visit(a);
                 Write(")");
             });
-                Translate("Enumerable.Range", (node, member) =>
+            Translate("Enumerable.Range", (node, member) =>
             {
                 var start = node.ArgumentList.Arguments.First();
                 var count = node.ArgumentList.Arguments.Last();
@@ -234,10 +237,7 @@ namespace CsToKotlinTranspiler
                     Write(")");
                 }
             });
-            Translate("Task.FromResult", (node, member) =>
-            {
-                Write("");
-            });
+            Translate("Task.FromResult", (node, member) => { Write(""); });
         }
     }
 }

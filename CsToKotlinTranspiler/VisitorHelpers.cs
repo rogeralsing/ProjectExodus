@@ -4,7 +4,6 @@
 //   </copyright>
 // -----------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -15,10 +14,7 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        public string GetKotlinPackageName(string ns)
-        {
-            return ns.ToLowerInvariant();
-        }
+        public string GetKotlinPackageName(string ns) => ns.ToLowerInvariant();
 
         private string GetArgList(ParameterListSyntax node)
         {
@@ -39,10 +35,7 @@ namespace CsToKotlinTranspiler
             return arg;
         }
 
-        private static string ToCamelCase(string name)
-        {
-            return char.ToLowerInvariant(name[0]) + name.Substring(1);
-        }
+        private static string ToCamelCase(string name) => char.ToLowerInvariant(name[0]) + name.Substring(1);
 
         private static bool FieldIsReadOnly(FieldDeclarationSyntax node)
         {
@@ -53,9 +46,10 @@ namespace CsToKotlinTranspiler
         {
             var methodSymbol = _model.GetDeclaredSymbol(node);
             var isInterfaceMethod = methodSymbol.ContainingType
-                                                .AllInterfaces
-                                                .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
-                                                .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+                .AllInterfaces
+                .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
+                .Any(method =>
+                    methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
 
@@ -63,26 +57,24 @@ namespace CsToKotlinTranspiler
         {
             var methodSymbol = _model.GetDeclaredSymbol(node);
             var isInterfaceMethod = methodSymbol.ContainingType
-                                                .AllInterfaces
-                                                .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
-                                                .Any(method => methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+                .AllInterfaces
+                .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
+                .Any(method =>
+                    methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
-
 
 
         public string Run(SyntaxNode root)
         {
             Setup();
             _assignments = (from exp in root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
-                            let symbol = _model.GetSymbolInfo(exp.Left).Symbol
-                            where symbol != null
-                            group exp by symbol).ToDictionary(g => g.Key, g => g.ToArray());
+                let symbol = _model.GetSymbolInfo(exp.Left).Symbol
+                where symbol != null
+                group exp by symbol).ToDictionary(g => g.Key, g => g.ToArray());
 
             Visit(root);
             return _sb.ToString();
         }
     }
 }
- 
- 

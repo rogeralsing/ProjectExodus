@@ -5,36 +5,47 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Build.Locator;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.MSBuild;
 
 namespace CsToKotlinTranspiler
 {
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Run().Wait();
         }
 
         private static async Task Run()
         {
-            var myPath = Assembly.GetExecutingAssembly().Location;
+            MSBuildLocator.RegisterDefaults();
+            var srcPath = @"/Users/rogerjohansson/RiderProjects/ConsoleApp4/ConsoleApp4.sln";
 
-            var dir = Path.GetDirectoryName(myPath);
-            var srcPath = Path.GetFullPath(Path.Combine(dir, @"..\..\.."));
-
+            
             var ws = MSBuildWorkspace.Create();
-            var output = srcPath + @"\demooutput";
-            var sln = await ws.OpenSolutionAsync(srcPath + @"\democode\DemoCode.sln");
+            ws.WorkspaceFailed += (sender, args) =>
+            {
+                Console.WriteLine("Workspace failed");
+            };
+            
+            var output =  @"/demooutput";
+            var sln = await ws.OpenSolutionAsync(srcPath);
+            
+            Console.WriteLine(sln.Version);
 
             foreach (var p in sln.Projects)
             {
+                Console.WriteLine($"Project {p.Name}");
                 foreach (var d in p.Documents)
                 {
                     var n = d.Name.ToLowerInvariant();
+                    Console.WriteLine($"Document {n}");
                     if (n.Contains("assemblyinfo") || n.Contains("assemblyattributes") || !n.EndsWith(".cs"))
                     {
                         continue;
@@ -48,10 +59,10 @@ namespace CsToKotlinTranspiler
                     var o = d.FilePath.Replace("democode", "demooutput");
                     var fileName = Path.ChangeExtension(o, ".kt");
                     Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-                    
+
                     var outputFile = Path.Combine(output, fileName);
                     File.WriteAllText(outputFile, res);
-                 //   return;
+                    //   return;
                 }
             }
         }

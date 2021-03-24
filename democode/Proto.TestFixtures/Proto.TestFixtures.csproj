@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFrameworks>net452</TargetFrameworks>
-  </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Proto.Actor\Proto.Actor.csproj" />
-    <ProjectReference Include="..\Proto.Mailbox\Proto.Mailbox.csproj" />
-  </ItemGroup>
-</Project>

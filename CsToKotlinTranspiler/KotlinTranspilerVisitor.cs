@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-
 namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor : CSharpSyntaxWalker
@@ -20,7 +19,8 @@ namespace CsToKotlinTranspiler
         private readonly SemanticModel _model;
         private Dictionary<ISymbol, AssignmentExpressionSyntax[]> _assignments;
 
-        public KotlinTranspilerVisitor(SemanticModel model, SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node) : base(depth)
+        public KotlinTranspilerVisitor(SemanticModel model, SyntaxWalkerDepth depth = SyntaxWalkerDepth.Node) :
+            base(depth)
         {
             _model = model;
         }
@@ -65,6 +65,7 @@ namespace CsToKotlinTranspiler
             {
                 Write("override ");
             }
+
             if (node.AccessorList != null)
             {
                 var accessors = node.AccessorList.Accessors.Select(a => a.Keyword.Text).ToImmutableHashSet();
@@ -74,12 +75,14 @@ namespace CsToKotlinTranspiler
             {
                 Write("val ");
             }
+
             Write($"{name} : {t}");
             if (node.Initializer != null)
             {
                 Write(" = ");
                 Visit(node.Initializer.Value);
             }
+
             if (node.ExpressionBody != null)
             {
                 _indent++;
@@ -106,11 +109,12 @@ namespace CsToKotlinTranspiler
                 {
                     continue;
                 }
+
                 WriteModifiers(node.Modifiers);
                 var isMutated = IsMutated(v);
                 var isReadOnly = FieldIsReadOnly(node);
-               
-                
+
+
                 var d = TranslateDefaultValue(node.Declaration.Type);
                 var nullable = v.Initializer == null && !isReadOnly;
                 if (v.Initializer != null)
@@ -132,6 +136,7 @@ namespace CsToKotlinTranspiler
                 {
                     Write($" {v.Identifier} : {t}");
                 }
+
                 NewLine();
             }
         }
@@ -202,6 +207,7 @@ namespace CsToKotlinTranspiler
             {
                 Visit(m);
             }
+
             _indent--;
             IndentWriteLine("}");
         }
@@ -227,10 +233,12 @@ namespace CsToKotlinTranspiler
             _indent++;
             var statics = node.Members.Where(mm =>
             {
-                if (mm is FieldDeclarationSyntax field && (field.Modifiers.Contains("const") || field.Modifiers.Contains("static")))
+                if (mm is FieldDeclarationSyntax field &&
+                    (field.Modifiers.Contains("const") || field.Modifiers.Contains("static")))
                 {
                     return true;
                 }
+
                 var mmm = _model.GetDeclaredSymbol(mm);
                 return mmm?.IsStatic == true;
             }).ToList();
@@ -244,13 +252,16 @@ namespace CsToKotlinTranspiler
                 {
                     Visit(m);
                 }
+
                 _indent--;
                 IndentWriteLine("}");
             }
+
             foreach (var m in instance)
             {
                 Visit(m);
             }
+
             _indent--;
             IndentWriteLine("}");
         }
@@ -272,6 +283,7 @@ namespace CsToKotlinTranspiler
             {
                 Visit(m);
             }
+
             _indent--;
             IndentWriteLine("}");
         }
@@ -282,16 +294,13 @@ namespace CsToKotlinTranspiler
             WriteModifiers(node.Modifiers);
             Write($"enum class {node.Identifier.Text} {{");
             NewLine();
-            
+
             _indent++;
             Indent();
-            Delimit(node.Members, m =>
-            {
-                Write(m.Identifier.Text);
-            });
+            Delimit(node.Members, m => { Write(m.Identifier.Text); });
             _indent--;
             NewLine();
-            
+
             IndentWriteLine("}");
         }
 
@@ -345,6 +354,7 @@ namespace CsToKotlinTranspiler
                 {
                     Write(single.Identifier.Text);
                 }
+
                 if (v is DiscardDesignationSyntax _)
                 {
                     Write("_");
@@ -399,6 +409,7 @@ namespace CsToKotlinTranspiler
 
                 c = c.Parent;
             }
+
             return false;
         }
 
@@ -428,6 +439,7 @@ namespace CsToKotlinTranspiler
                 IndentWrite("return");
                 NewLine();
             }
+
             if (node.Kind() == SyntaxKind.YieldReturnStatement)
             {
                 IndentWrite("yield (");
@@ -435,7 +447,6 @@ namespace CsToKotlinTranspiler
                 Write(")");
                 NewLine();
             }
-            
         }
 
         public override void VisitWhileStatement(WhileStatementSyntax node)
@@ -457,22 +468,23 @@ namespace CsToKotlinTranspiler
                 Visit(node.Condition);
                 Write(")");
             }
+
             NewLine();
         }
 
         public override void VisitForStatement(ForStatementSyntax node)
         {
-
-            if (node?.Declaration.Variables.Count == 1 && 
+            if (node?.Declaration.Variables.Count == 1 &&
                 node?.Declaration.Variables.First() is VariableDeclaratorSyntax init &&
-                node?.Incrementors.Count == 1 && 
+                node?.Incrementors.Count == 1 &&
                 node?.Incrementors.First() is PostfixUnaryExpressionSyntax inc &&
                 inc.Kind() == SyntaxKind.PostIncrementExpression &&
                 node.Condition is BinaryExpressionSyntax guard)
             {
                 IndentWrite($"for ({init.Identifier.Text} in ");
 
-                switch (guard.Kind()) {
+                switch (guard.Kind())
+                {
                     case SyntaxKind.LessThanExpression:
                         Visit(init.Initializer.Value);
                         Write(" until ");
@@ -483,18 +495,15 @@ namespace CsToKotlinTranspiler
                         Write("..");
                         Visit(guard.Right);
                         break;
-                    default:
-                        break;
                 }
+
                 Write(")");
                 VisitMaybeBlock(node.Statement);
             }
             else
             {
-                
                 IndentWriteLine("*** Unknown for statement ***");
             }
-            
         }
 
 
@@ -531,7 +540,7 @@ namespace CsToKotlinTranspiler
         public override void VisitLockStatement(LockStatementSyntax node)
         {
             Indent();
-            
+
             Write("synchronized(");
             Visit(node.Expression);
             Write(",{");
@@ -591,7 +600,6 @@ namespace CsToKotlinTranspiler
             }
             else
             {
-
                 _indent++;
                 NewLine();
                 Visit(node);
@@ -610,6 +618,7 @@ namespace CsToKotlinTranspiler
             {
                 Visit(s);
             }
+
             _indent--;
             IndentWriteLine("}");
         }
@@ -627,6 +636,7 @@ namespace CsToKotlinTranspiler
                 {
                     Write(delimiter);
                 }
+
                 action(item);
             }
         }
@@ -660,10 +670,12 @@ namespace CsToKotlinTranspiler
                             IndentWriteLine($"val {v.Identifier.Text} = tmp");
                         }
                     }
+
                     foreach (var s in GetUnwrappedStatements(node.Statements))
                     {
                         Visit(s);
                     }
+
                     _indent--;
                     IndentWriteLine("}");
                     return;
@@ -676,6 +688,7 @@ namespace CsToKotlinTranspiler
                     {
                         Visit(s);
                     }
+
                     _indent--;
                     IndentWriteLine("}");
                     return;
@@ -695,6 +708,7 @@ namespace CsToKotlinTranspiler
                     {
                         Visit(s);
                     }
+
                     _indent--;
                     IndentWriteLine("}");
                     return;
@@ -705,7 +719,6 @@ namespace CsToKotlinTranspiler
                     return;
                 }
             }
-
         }
 
         private static SyntaxList<StatementSyntax> GetUnwrappedStatements(SyntaxList<StatementSyntax> statements)
@@ -714,6 +727,7 @@ namespace CsToKotlinTranspiler
             {
                 return block.Statements;
             }
+
             return statements;
         }
 
@@ -780,7 +794,6 @@ namespace CsToKotlinTranspiler
             var containingTypeName = sym?.ContainingType?.Name;
             if (sym.Kind == SymbolKind.Method)
             {
-                
             }
 
             Visit(node.Expression);
@@ -791,6 +804,7 @@ namespace CsToKotlinTranspiler
                 Write("count()");
                 return;
             }
+
             if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
             {
                 name = ToCamelCase(name);
@@ -812,10 +826,7 @@ namespace CsToKotlinTranspiler
             return IsAsync(s);
         }
 
-        private static bool IsAsync(ITypeSymbol s)
-        {
-            return s is INamedTypeSymbol named && named.Name == "Task";
-        }
+        private static bool IsAsync(ITypeSymbol s) => s is INamedTypeSymbol named && named.Name == "Task";
 
         public override void VisitMethodDeclaration(MethodDeclarationSyntax node)
         {
@@ -842,6 +853,7 @@ namespace CsToKotlinTranspiler
             {
                 Write($"fun {methodName} ({arg}) : {ret}");
             }
+
             if (node.Body != null)
             {
                 Visit(node.Body);
@@ -860,24 +872,27 @@ namespace CsToKotlinTranspiler
 
         private void WriteClassModifiers(SyntaxTokenList modifiers)
         {
-
             Indent();
             if (!modifiers.Contains("sealed") && !modifiers.Contains("abstract") && !modifiers.Contains("static"))
             {
                 Write("open ");
             }
+
             if (modifiers.Contains("private"))
             {
                 Write("private ");
             }
+
             if (modifiers.Contains("protected"))
             {
                 Write("protected ");
             }
+
             if (modifiers.Contains("internal"))
             {
                 Write("internal ");
             }
+
             if (modifiers.Contains("abstract"))
             {
                 Write("abstract ");
@@ -892,14 +907,17 @@ namespace CsToKotlinTranspiler
             {
                 Write("private ");
             }
+
             if (modifiers.Contains("protected"))
             {
                 Write("protected ");
             }
+
             if (modifiers.Contains("internal"))
             {
                 Write("internal ");
             }
+
             if (modifiers.Contains("abstract"))
             {
                 Write("abstract ");
@@ -960,6 +978,7 @@ namespace CsToKotlinTranspiler
             {
                 Write(node.OperatorToken.Text);
             }
+
             Write(" ");
             Visit(node.Right);
         }
@@ -999,7 +1018,7 @@ namespace CsToKotlinTranspiler
             base.VisitDocumentationCommentTrivia(node);
         }
 
-        
+
         public override void VisitIndexerDeclaration(IndexerDeclarationSyntax node)
         {
             base.VisitIndexerDeclaration(node);
@@ -1058,6 +1077,7 @@ namespace CsToKotlinTranspiler
                 {
                     Visit(s);
                 }
+
                 _indent--;
                 IndentWriteLine("}");
             }
@@ -1094,6 +1114,7 @@ namespace CsToKotlinTranspiler
             {
                 Write(" ");
             }
+
             if (node.Body is BlockSyntax block)
             {
                 NewLine();
@@ -1102,6 +1123,7 @@ namespace CsToKotlinTranspiler
                 {
                     Visit(s);
                 }
+
                 _indent--;
                 IndentWriteLine(" }");
             }
@@ -1124,8 +1146,9 @@ namespace CsToKotlinTranspiler
                     Write(")");
                     return;
                 }
+
                 Write("().apply {");
-                Delimit(node.Expressions, Visit,"; ");
+                Delimit(node.Expressions, Visit, "; ");
                 Write("}");
                 return;
             }
@@ -1178,7 +1201,8 @@ namespace CsToKotlinTranspiler
                 var arg = node.Arguments.First();
                 var t = _model.GetSymbolInfo(arg.Expression);
                 var sym = t.Symbol;
-                if (sym != null && sym.ToString() == "lambda expression") //TODO: I have no idea how to check this correctly
+                if (sym != null &&
+                    sym.ToString() == "lambda expression") //TODO: I have no idea how to check this correctly
                 {
                     Visit(arg);
                     return;
@@ -1279,6 +1303,7 @@ namespace CsToKotlinTranspiler
             {
                 Visit(i);
             }
+
             Write("\"");
         }
 
@@ -1353,6 +1378,7 @@ namespace CsToKotlinTranspiler
                 {
                     IndentWrite("val");
                 }
+
                 //Write($" {v.Identifier} : {TranslateType(node.Type)} = ");
                 Write($" {v.Identifier} = ");
                 Visit(v.Initializer);
@@ -1374,6 +1400,7 @@ namespace CsToKotlinTranspiler
             {
                 IndentWrite($"fun {methodName} ({arg}) : {ret}");
             }
+
             if (node.Body != null)
             {
                 Visit(node.Body);
@@ -1440,7 +1467,8 @@ namespace CsToKotlinTranspiler
             if (count == 2)
             {
                 Write("Pair(");
-            } else if (count == 3)
+            }
+            else if (count == 3)
             {
                 Write("Triple(");
             }
@@ -1558,7 +1586,6 @@ namespace CsToKotlinTranspiler
         public override void VisitAttributeArgumentList(AttributeArgumentListSyntax node)
         {
         }
-
 
 
         public override void VisitDeclarationExpression(DeclarationExpressionSyntax node)

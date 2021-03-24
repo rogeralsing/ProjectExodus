@@ -11,7 +11,7 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private readonly StringBuilder _sb = new StringBuilder();
+        private readonly StringBuilder _sb = new();
         private int _indent;
 
         private void IndentWrite(string text)
@@ -28,8 +28,8 @@ namespace CsToKotlinTranspiler
         {
             if (text == "fromProducer")
             {
-                
             }
+
             Console.Write(text);
             _sb.Append(text);
         }
@@ -45,9 +45,6 @@ namespace CsToKotlinTranspiler
             NewLine();
         }
 
-        private string GetIndent()
-        {
-            return new string(' ', _indent * 4);
-        }
+        private string GetIndent() => new(' ', _indent * 4);
     }
 }
