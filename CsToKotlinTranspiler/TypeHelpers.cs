@@ -123,26 +123,34 @@ namespace CsToKotlinTranspiler
             return (isAsync ? "suspend " : "") + $"({joined}) -> {ret}";
         }
 
+        /// <summary>
+        /// Known mappings from C# type names to their Kotlin equivalents.
+        /// Extend this dictionary to support additional mappings.
+        /// </summary>
+        private static readonly Dictionary<string, string> KnownTypeMappings = new()
+        {
+            { "Void", "Unit" },
+            { nameof(Object), "Any" },
+            { nameof(Int32), "Int" },
+            { nameof(Int64), "Long" },
+            { nameof(Double), "Double" },
+            { nameof(Single), "Single" },
+            { nameof(Boolean), "Boolean" },
+            { nameof(String), "String" },
+            { nameof(TimeSpan), "Duration" },
+            { nameof(ArgumentException), "IllegalArgumentException" },
+            { nameof(ManualResetEventSlim), "CountDownLatch" },
+            { nameof(ManualResetEvent), "CountDownLatch" },
+            { nameof(AutoResetEvent), "CountDownLatch" }
+        };
+
+        /// <summary>
+        /// Returns the Kotlin equivalent for a given C# type name.
+        /// Add new mappings to <see cref="KnownTypeMappings"/> as needed.
+        /// </summary>
         public static string GetKnownName(string name)
         {
-            switch (name)
-            {
-                case "Void": return "Unit";
-
-                case nameof(Object): return "Any";
-                case nameof(Int32): return "Int";
-                case nameof(Int64): return "Long";
-                case nameof(Double): return "Double";
-                case nameof(Single): return "Single";
-                case nameof(Boolean): return "Boolean";
-                case nameof(String): return "String";
-                case nameof(TimeSpan): return "Duration";
-                case nameof(ArgumentException): return "IllegalArgumentException";
-                case nameof(ManualResetEventSlim):
-                case nameof(ManualResetEvent):
-                case nameof(AutoResetEvent): return "CountDownLatch";
-                default: return name;
-            }
+            return KnownTypeMappings.TryGetValue(name, out var known) ? known : name;
         }
 
         public static string GetKnownGenericName(string name)
