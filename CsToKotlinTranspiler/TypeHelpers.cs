@@ -18,7 +18,16 @@ namespace CsToKotlinTranspiler
 {
     public partial class KotlinTranspilerVisitor
     {
-        private string TranslateType(TypeSyntax type) => TranslateType(GetTypeSymbol(type));
+        private string TranslateType(TypeSyntax type)
+        {
+            var symbol = GetTypeSymbol(type);
+            if (symbol == null)
+            {
+                return $"/* {type.ToFullString().Trim()} */";
+            }
+
+            return TranslateType(symbol);
+        }
 
         private ITypeSymbol GetTypeSymbol(TypeSyntax type)
         {
@@ -34,13 +43,16 @@ namespace CsToKotlinTranspiler
                 return s as ITypeSymbol;
             }
 
-            throw new NotSupportedException("Unknown TypeSyntax");
+            return null;
         }
 
         private string TranslateType(ITypeSymbol s)
         {
             switch (s.Kind)
             {
+                case SymbolKind.PointerType:
+                    // Kotlin has no pointer types
+                    return $"/* {s.ToDisplayString()} */";
                 case SymbolKind.ArrayType:
                     var arr = (IArrayTypeSymbol) s;
                     return $"Array<{TranslateType(arr.ElementType)}>";
@@ -259,7 +271,8 @@ namespace CsToKotlinTranspiler
                     Visit(node.ArgumentList);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    CommentOut(node, "invocation expression");
+                    break;
             }
         }
     }

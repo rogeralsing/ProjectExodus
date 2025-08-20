@@ -102,6 +102,11 @@ namespace CsToKotlinTranspiler
 
         public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
         {
+            if (node.Declaration.Type is PointerTypeSyntax)
+            {
+                CommentOut(node, "pointer type");
+                return;
+            }
             foreach (var v in node.Declaration.Variables)
             {
                 var t = TranslateType(node.Declaration.Type);
@@ -350,7 +355,20 @@ namespace CsToKotlinTranspiler
 
         public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
-            //pass
+            // C# delegates are represented as Kotlin type aliases to function types
+            NewLine();
+            WriteModifiers(node.Modifiers);
+            var name = node.Identifier.Text;
+            Write($"typealias {name} = (");
+            Delimit(node.ParameterList.Parameters, p =>
+            {
+                // only parameter types are needed for Kotlin function types
+                var t = TranslateType(p.Type);
+                Write(t);
+            });
+            Write(") -> ");
+            Write(TranslateType(node.ReturnType));
+            NewLine();
         }
 
 
@@ -563,22 +581,26 @@ namespace CsToKotlinTranspiler
 
         public override void VisitUsingStatement(UsingStatementSyntax node)
         {
-            //Not supported
+            // using statements require resource scopes that do not directly map to Kotlin
+            CommentOut(node, "using statement");
         }
 
         public override void VisitFixedStatement(FixedStatementSyntax node)
         {
-            //Not supported
+            // fixed blocks rely on pointer semantics unavailable in Kotlin
+            CommentOut(node, "fixed statement");
         }
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
-            //Not supported
+            // checked arithmetic overflow blocks have no Kotlin equivalent
+            CommentOut(node, "checked statement");
         }
 
         public override void VisitUnsafeStatement(UnsafeStatementSyntax node)
         {
-            //Not supported
+            // unsafe blocks depend on pointer operations which Kotlin does not allow
+            CommentOut(node, "unsafe statement");
         }
 
         public override void VisitLockStatement(LockStatementSyntax node)
@@ -634,6 +656,17 @@ namespace CsToKotlinTranspiler
                 Visit(node);
                 _indent--;
             }
+        }
+
+        private void CommentOut(SyntaxNode node, string reason)
+        {
+            var original = node.ToFullString().Replace("*/", "*\\/");
+            IndentWriteLine($"/* unsupported: {reason}");
+            foreach (var line in original.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
+            {
+                IndentWriteLine(line);
+            }
+            IndentWriteLine("*/");
         }
 
         private void VisitMaybeBlock(StatementSyntax node)
@@ -1468,8 +1501,8 @@ namespace CsToKotlinTranspiler
 
         public override void VisitPointerType(PointerTypeSyntax node)
         {
-            //Not supported
-            base.VisitPointerType(node);
+            // pointer types are incompatible with managed Kotlin code
+            CommentOut(node, "pointer type");
         }
 
         public override void VisitNullableType(NullableTypeSyntax node)

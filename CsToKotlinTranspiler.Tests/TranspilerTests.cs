@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace CsToKotlinTranspiler.Tests;
@@ -132,6 +133,58 @@ public class TranspilerTests
     }
 
     [Fact]
+    public void TranslatesDelegateDeclaration()
+    {
+        var code = "public delegate int Adder(int a, int b);";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("typealias Adder = (Int, Int) -> Int", kt);
+    }
+
+    [Fact]
+    public void UsingStatementCommented()
+    {
+        var code = "using System; class Example { void Foo() { using(var d = new Dummy()) { } } class Dummy : IDisposable { public void Dispose() { } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("/* unsupported: using statement", kt);
+        Assert.Contains("using(var d = new Dummy())", kt);
+    }
+
+    [Fact]
+    public void FixedStatementCommented()
+    {
+        var code = "unsafe class Example { void Foo(int[] arr) { fixed(int* p = arr) { } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("/* unsupported: fixed statement", kt);
+        Assert.Contains("fixed(int* p = arr)", kt);
+    }
+
+    [Fact]
+    public void CheckedStatementCommented()
+    {
+        var code = "class Example { void Foo() { checked { int x = int.MaxValue + 1; } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("/* unsupported: checked statement", kt);
+        Assert.Contains("checked {", kt);
+    }
+
+    [Fact]
+    public void UnsafeStatementCommented()
+    {
+        var code = "class Example { void Foo() { unsafe { int x = 0; } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("/* unsupported: unsafe statement", kt);
+        Assert.Contains("unsafe {", kt);
+    }
+
+    [Fact]
+    public void PointerTypeCommented()
+    {
+        var code = "unsafe class Example { int* ptr; }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("/* unsupported: pointer type", kt);
+        Assert.Contains("int* ptr", kt);
+
+    }
     public void TranslatesRegex()
     {
         var code = "using System.Text.RegularExpressions; class Example { void Foo() { var ok = Regex.IsMatch(\"abc\", \"a.c\"); } }";
@@ -153,5 +206,6 @@ public class TranspilerTests
         var code = "using System; class Example { int Foo(byte[] b) { return BitConverter.ToInt32(b,0); } }";
         var kt = KotlinTranspiler.Transpile(code);
         Assert.Contains("ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).getInt(0)", kt);
+
     }
 }
