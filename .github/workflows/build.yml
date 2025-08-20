@@ -1,0 +1,34 @@
+name: Build
+
+on:
+  # Trigger when changes are pushed directly to the work branch.
+  push:
+    branches:
+      - work
+  # Trigger for pull requests targeting the work branch.
+  pull_request:
+    branches:
+      - work
+
+env:
+  DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
+  TERM: xterm
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+      - name: Restore dependencies
+        run: dotnet restore CsToKotlinTranspiler.sln
+      - name: Build
+        run: dotnet build CsToKotlinTranspiler.sln --no-restore -c Release
+      - name: Test
+        run: dotnet test CsToKotlinTranspiler.sln --no-build -c Release --logger "console;verbosity=normal"
