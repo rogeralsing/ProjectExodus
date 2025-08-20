@@ -1309,62 +1309,49 @@ namespace CsToKotlinTranspiler
 
         public override void VisitQueryExpression(QueryExpressionSyntax node)
         {
-            base.VisitQueryExpression(node);
-        }
+            // Translate basic LINQ query syntax into Kotlin collection operators.
+            var from = node.FromClause;
+            var rangeVar = from.Identifier.Text;
 
-        public override void VisitQueryBody(QueryBodySyntax node)
-        {
-            base.VisitQueryBody(node);
-        }
+            // Start with the source sequence.
+            Visit(from.Expression);
 
-        public override void VisitFromClause(FromClauseSyntax node)
-        {
-            base.VisitFromClause(node);
-        }
+            // Translate supported intermediate clauses.
+            foreach (var clause in node.Body.Clauses)
+            {
+                if (clause is WhereClauseSyntax whereClause)
+                {
+                    Write(".filter");
+                    var lambda = SyntaxFactory.SimpleLambdaExpression(
+                        SyntaxFactory.Parameter(SyntaxFactory.Identifier(rangeVar)),
+                        whereClause.Condition);
+                    Visit(lambda);
+                }
+                else
+                {
+                    CommentOut(clause, "query clause not supported");
+                }
+            }
 
-        public override void VisitLetClause(LetClauseSyntax node)
-        {
-            base.VisitLetClause(node);
-        }
+            // Handle the final select.
+            if (node.Body.SelectOrGroup is SelectClauseSyntax selectClause)
+            {
+                Write(".map");
+                var lambda = SyntaxFactory.SimpleLambdaExpression(
+                    SyntaxFactory.Parameter(SyntaxFactory.Identifier(rangeVar)),
+                    selectClause.Expression);
+                Visit(lambda);
+            }
+            else
+            {
+                CommentOut(node.Body.SelectOrGroup, "only select clause supported");
+            }
 
-        public override void VisitJoinClause(JoinClauseSyntax node)
-        {
-            base.VisitJoinClause(node);
-        }
-
-        public override void VisitJoinIntoClause(JoinIntoClauseSyntax node)
-        {
-            base.VisitJoinIntoClause(node);
-        }
-
-        public override void VisitWhereClause(WhereClauseSyntax node)
-        {
-            base.VisitWhereClause(node);
-        }
-
-        public override void VisitOrderByClause(OrderByClauseSyntax node)
-        {
-            base.VisitOrderByClause(node);
-        }
-
-        public override void VisitOrdering(OrderingSyntax node)
-        {
-            base.VisitOrdering(node);
-        }
-
-        public override void VisitSelectClause(SelectClauseSyntax node)
-        {
-            base.VisitSelectClause(node);
-        }
-
-        public override void VisitGroupClause(GroupClauseSyntax node)
-        {
-            base.VisitGroupClause(node);
-        }
-
-        public override void VisitQueryContinuation(QueryContinuationSyntax node)
-        {
-            base.VisitQueryContinuation(node);
+            // Query continuations are currently not supported.
+            if (node.Body.Continuation != null)
+            {
+                CommentOut(node.Body.Continuation, "query continuation not supported");
+            }
         }
 
         public override void VisitOmittedArraySizeExpression(OmittedArraySizeExpressionSyntax node)
