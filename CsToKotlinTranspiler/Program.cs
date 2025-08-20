@@ -23,22 +23,42 @@ namespace CsToKotlinTranspiler
             await Run(args);
         }
 
-        // Runs the transpiler logic. Command-line arguments are accepted to
-        // allow future extensions without changing the signature.
+        /// <summary>
+        ///     Runs the transpiler. The first argument (or environment variable
+        ///     <c>CS2KOTLIN_SRC</c>) specifies the solution to transpile. The
+        ///     second argument (or <c>CS2KOTLIN_OUT</c>) specifies the output
+        ///     directory for generated Kotlin files. Defaults are used when
+        ///     neither command line arguments nor environment variables are
+        ///     supplied.
+        /// </summary>
+        /// <param name="args">Optional command line arguments.</param>
         private static async Task Run(string[] args)
         {
             MSBuildLocator.RegisterDefaults();
-            var srcPath = @"/Users/rogerjohansson/RiderProjects/ConsoleApp4/ConsoleApp4.sln";
 
-            
+            const string defaultSrc = "CsToKotlinTranspiler.sln";
+            const string defaultOut = "kotlinOutput";
+
+            var srcPath = args.Length > 0
+                ? args[0]
+                : Environment.GetEnvironmentVariable("CS2KOTLIN_SRC") ?? defaultSrc;
+
+            var output = args.Length > 1
+                ? args[1]
+                : Environment.GetEnvironmentVariable("CS2KOTLIN_OUT") ?? defaultOut;
+
             var ws = MSBuildWorkspace.Create();
             ws.WorkspaceFailed += (sender, args) =>
             {
-                Console.WriteLine("Workspace failed");
+                Console.WriteLine($"Workspace failed: {args.Diagnostic}");
             };
-            
-            var output =  @"/demooutput";
+
             var sln = await ws.OpenSolutionAsync(srcPath);
+            var slnDir = Path.GetDirectoryName(srcPath);
+            if (string.IsNullOrEmpty(slnDir))
+            {
+                slnDir = Directory.GetCurrentDirectory();
+            }
             
             Console.WriteLine(sln.Version);
 
@@ -59,11 +79,9 @@ namespace CsToKotlinTranspiler
                     var visitor = new KotlinTranspilerVisitor(model);
                     var res = visitor.Run(root);
 
-                    var o = d.FilePath.Replace("democode", "demooutput");
-                    var fileName = Path.ChangeExtension(o, ".kt");
-                    Directory.CreateDirectory(Path.GetDirectoryName(fileName));
-
-                    var outputFile = Path.Combine(output, fileName);
+                    var relative = Path.GetRelativePath(slnDir, d.FilePath);
+                    var outputFile = Path.Combine(output, Path.ChangeExtension(relative, ".kt"));
+                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile)!);
                     File.WriteAllText(outputFile, res);
                     //   return;
                 }
