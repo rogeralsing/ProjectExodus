@@ -22,6 +22,17 @@ public class TranspilerTests
     }
 
     [Fact]
+    public void TranslatesUnknownObjectCreation()
+    {
+        // Types that aren't resolved by Roslyn should still emit their name
+        // so simple constructor calls are preserved in the output.
+        var code = "using System; class Example { void Main() { Console.WriteLine(new Rule(\\\"foo\\\")); } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("Rule(", kt);
+        Assert.DoesNotContain("/* Rule */", kt);
+    }
+
+    [Fact]
     public void TranslatesConditionalOperator()
     {
         var code = "class Example { string Foo() { return 1 > 2 ? \"a\" : \"b\"; } }";
