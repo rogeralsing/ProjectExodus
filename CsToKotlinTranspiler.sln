@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26430.15
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinTranspiler", "CsToKotlinTranspiler\CsToKotlin.csproj", "{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinTranspiler.Tests", "CsToKotlinTranspiler.Tests\CsToKotlinTranspiler.Tests.csproj", "{5F405B26-051F-4976-B15E-833E5BCD35AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,15 +14,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x86 = Release|x86
 	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|Any CPU.Build.0 = Debug|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|x86.ActiveCfg = Debug|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|x86.Build.0 = Debug|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|Any CPU.ActiveCfg = Release|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|x86.ActiveCfg = Release|x86
-		{4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|x86.Build.0 = Release|x86
-	EndGlobalSection
+        GlobalSection(ProjectConfigurationPlatforms) = postSolution
+                {4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {4824684E-F54B-4E5E-B3A7-1C69FFD5551F}.Release|Any CPU.Build.0 = Release|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Debug|x86.ActiveCfg = Debug|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Release|Any CPU.Build.0 = Release|Any CPU
+                {5F405B26-051F-4976-B15E-833E5BCD35AF}.Release|x86.ActiveCfg = Release|Any CPU
+        EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

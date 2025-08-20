@@ -231,13 +231,13 @@ namespace CsToKotlinTranspiler
                         Visit(member.Expression);
                         Write(".");
                         var name = member.Name.ToString();
-                        if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
+                        if (sym != null && (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property))
                         {
                             name = ToCamelCase(name);
                         }
 
                         Write(name);
-                        if (sym.Kind == SymbolKind.Method)
+                        if (sym != null && sym.Kind == SymbolKind.Method)
                         {
                             Visit(node.ArgumentList);
                         }

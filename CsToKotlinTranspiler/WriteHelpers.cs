@@ -26,11 +26,8 @@ namespace CsToKotlinTranspiler
 
         private void Write(string text)
         {
-            if (text == "fromProducer")
-            {
-            }
-
-            Console.Write(text);
+            // Record text into the buffer without writing to the console to
+            // make the transpiler easier to test.
             _sb.Append(text);
         }
 
