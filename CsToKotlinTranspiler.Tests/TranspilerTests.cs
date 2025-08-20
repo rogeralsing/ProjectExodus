@@ -67,4 +67,46 @@ public class TranspilerTests
         var kt = KotlinTranspiler.Transpile(code);
         Assert.Contains("val x : Int = 5", kt);
     }
+
+    [Fact]
+    public void TranslatesForLoop()
+    {
+        var code = "class Example { void Loop(int n) { for(int i = 0; i < n; i++) { var x = i; } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("for(i in 0 until n)", kt);
+    }
+
+    [Fact]
+    public void TranslatesWhileLoop()
+    {
+        var code = "class Example { void Loop() { var i = 0; while(i < 10) { i++; } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("while (i < 10)", kt);
+    }
+
+    [Fact]
+    public void TranslatesIfElse()
+    {
+        var code = "class Example { string Foo(int x) { if(x > 0) { return \"a\"; } else { return \"b\"; } } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("if (x > 0)", kt);
+        Assert.Contains("else", kt);
+    }
+
+    [Fact]
+    public void TranslatesClassAndMethod()
+    {
+        var code = "class Calculator { public int Add(int a, int b) { return a + b; } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("class Calculator", kt);
+        Assert.Contains("fun add", kt);
+    }
+
+    [Fact(Skip = "Record translation not implemented")]
+    public void TranslatesRecord()
+    {
+        var code = "public record Person(string Name, int Age);";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("data class Person", kt);
+    }
 }
