@@ -218,9 +218,10 @@ namespace CsToKotlinTranspiler
             var s = GetTypeSymbol(type);
             if (s == null)
             {
-                // If Roslyn cannot resolve the type symbol, fall back to the raw
-                // type syntax so the transpiler can continue without crashing.
-                return $"/* {type.ToFullString().Trim()} */";
+                // Roslyn couldn't resolve the symbol, so just emit the type name
+                // directly. This allows simple constructor calls like `Rule()`
+                // to be emitted instead of being commented out.
+                return type.ToString();
             }
 
             return TranslateObjectCreator(s);
