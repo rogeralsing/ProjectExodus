@@ -53,7 +53,15 @@ public class TranspilerTests
     {
         var code = "using System.Linq;\nclass Example { void Linq() { int[] ints = {1,2,3,4,5}; var big = ints.Where(i => i > 4).Select(i => i * 2).ToList(); } }";
         var kt = KotlinTranspiler.Transpile(code);
-        Assert.Contains("ints.filter", kt);
+        Assert.Contains("val big = ints.filter{it > 4}.map{it * 2}.toList()", kt);
+    }
+
+    [Fact]
+    public void TranslatesLinqQuerySyntax()
+    {
+        var code = "using System.Linq;\nclass Example { void LinqQuery() { int[] ints = {1,2,3,4,5}; var big = (from i in ints where i > 4 select i * 2).ToList(); } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("val big = (ints.filter{it > 4}.map{it * 2}).toList()", kt);
     }
 
     [Fact]
