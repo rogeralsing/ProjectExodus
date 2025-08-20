@@ -1,14 +1,14 @@
 name: Build
 
 on:
-  # Trigger when changes are pushed directly to the work branch.
+  # Trigger when changes are pushed directly to the master branch.
   push:
     branches:
-      - work
-  # Trigger for pull requests targeting the work branch.
+      - master
+  # Trigger for pull requests targeting the master branch.
   pull_request:
     branches:
-      - work
+      - master
 
 env:
   DOTNET_SYSTEM_CONSOLE_ALLOW_ANSI_COLOR_REDIRECTION: 1
