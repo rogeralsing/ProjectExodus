@@ -216,11 +216,26 @@ namespace CsToKotlinTranspiler
         private string TranslateObjectCreator(TypeSyntax type)
         {
             var s = GetTypeSymbol(type);
+            if (s == null)
+            {
+                // If Roslyn cannot resolve the type symbol, fall back to the raw
+                // type syntax so the transpiler can continue without crashing.
+                return $"/* {type.ToFullString().Trim()} */";
+            }
+
             return TranslateObjectCreator(s);
         }
 
         private string TranslateObjectCreator(ITypeSymbol s)
         {
+            if (s == null)
+            {
+                // Unknown types are emitted as empty so callers can decide how
+                // to handle them (typically resulting in a comment from the call
+                // site).
+                return string.Empty;
+            }
+
             switch (s.Name)
             {
                 case nameof(HashSet<object>): return "mutableSetOf";
