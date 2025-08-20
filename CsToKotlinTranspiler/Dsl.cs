@@ -22,6 +22,7 @@ namespace CsToKotlinTranspiler
 
         public void Setup()
         {
+            // Console.WriteLine is handled through the DSL mapping, so no separate translator class is needed.
             Translate("Console.WriteLine", (node, member) =>
             {
                 Write("println");
