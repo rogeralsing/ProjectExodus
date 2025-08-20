@@ -194,6 +194,50 @@ namespace CsToKotlinTranspiler
             }
         }
 
+        public override void VisitRecordDeclaration(RecordDeclarationSyntax node)
+        {
+            // Translate C# record declarations into Kotlin data classes
+            NewLine();
+            WriteClassModifiers(node.Modifiers);
+            Write($"data class {node.Identifier}");
+
+            if (node.ParameterList != null)
+            {
+                Write("(");
+                Delimit(node.ParameterList.Parameters, p =>
+                {
+                    var name = ToCamelCase(p.Identifier.Text);
+                    var t = TranslateType(p.Type);
+                    Write($"val {name} : {t}");
+                });
+                Write(")");
+            }
+            else
+            {
+                Write("()");
+            }
+
+            if (node.BaseList != null)
+            {
+                Write(" : ");
+                Delimit(node.BaseList.Types, t =>
+                {
+                    var tn = TranslateType(t.Type);
+                    Write(tn);
+                });
+            }
+
+            Write(" {");
+            NewLine();
+            _indent++;
+            foreach (var m in node.Members)
+            {
+                Visit(m);
+            }
+            _indent--;
+            IndentWriteLine("}");
+        }
+
         private void WriteObject(ClassDeclarationSyntax node)
         {
             NewLine();

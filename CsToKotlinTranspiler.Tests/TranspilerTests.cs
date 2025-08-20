@@ -36,7 +36,7 @@ public class TranspilerTests
         Assert.Contains("for(s in strings)", kt);
     }
 
-    [Fact(Skip = "LINQ translation not implemented")]
+    [Fact]
     public void TranslatesLinq()
     {
         var code = "using System.Linq;\nclass Example { void Linq() { int[] ints = {1,2,3,4,5}; var big = ints.Where(i => i > 4).Select(i => i * 2).ToList(); } }";
@@ -44,7 +44,7 @@ public class TranspilerTests
         Assert.Contains("ints.filter", kt);
     }
 
-    [Fact(Skip = "Delegate translation not implemented")]
+    [Fact]
     public void TranslatesDelegates()
     {
         var code = "using System;\nclass Example { void Delegates() { Action<int,string> del = (a,b)=>{ Console.WriteLine(\"{0} {1}\", a, b); }; del(1,\"x\"); } }";
@@ -102,11 +102,32 @@ public class TranspilerTests
         Assert.Contains("fun add", kt);
     }
 
-    [Fact(Skip = "Record translation not implemented")]
+    [Fact]
     public void TranslatesRecord()
     {
-        var code = "public record Person(string Name, int Age);";
+        var code = "public record Person(string Name, int Age);"; // record -> data class
         var kt = KotlinTranspiler.Transpile(code);
         Assert.Contains("data class Person", kt);
+        Assert.Contains("val name : String", kt);
+        Assert.Contains("val age : Int", kt);
+    }
+
+    [Fact]
+    public void TranslatesSwitchStatement()
+    {
+        var code = "class Example { string Foo(int x) { switch(x) { case 1: return \"a\"; default: return \"b\"; } } }"; // switch -> when
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("when (tmp)", kt);
+        Assert.Contains("1 ->", kt);
+        Assert.Contains("else ->", kt);
+    }
+
+    [Fact]
+    public void TranslatesTryCatch()
+    {
+        var code = "using System; class Example { void Foo() { try { Console.WriteLine(\"a\"); } catch(Exception ex) { Console.WriteLine(ex.Message); } } }"; // try/catch preserved
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("try", kt);
+        Assert.Contains("catch (ex : Exception)", kt);
     }
 }
