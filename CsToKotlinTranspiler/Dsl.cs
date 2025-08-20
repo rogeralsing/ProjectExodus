@@ -12,7 +12,12 @@ namespace CsToKotlinTranspiler
 
         public void Translate(string signature, Action<InvocationExpressionSyntax, MemberAccessExpressionSyntax> body)
         {
-            _methodTranslators.Add(signature, body);
+            _methodTranslators[signature] = body;
+            var simple = signature.Contains('.') ? signature.Substring(signature.LastIndexOf('.') + 1) : signature;
+            if (!_methodTranslators.ContainsKey(simple))
+            {
+                _methodTranslators[simple] = body;
+            }
         }
 
         public void Setup()
