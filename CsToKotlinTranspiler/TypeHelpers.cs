@@ -273,7 +273,13 @@ namespace CsToKotlinTranspiler
                         }
 
                         Write(name);
-                        if (sym != null && sym.Kind == SymbolKind.Method)
+                        // If Roslyn cannot resolve the symbol (sym == null) we still
+                        // want to emit the argument list. Otherwise method calls such
+                        // as AnsiConsole.MarkupLine("foo") are rendered without
+                        // parentheses and arguments. InvocationExpression always
+                        // represents a call, so default to writing the arguments when
+                        // the symbol is unknown.
+                        if (sym == null || sym.Kind == SymbolKind.Method)
                         {
                             Visit(node.ArgumentList);
                         }
