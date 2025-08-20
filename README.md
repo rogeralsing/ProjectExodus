@@ -2,6 +2,8 @@
 
 Transpiler from C# to Kotlin.
 
+> Requires the .NET 9 SDK.
+
 Very early pre alpha
 
 Demo:
