@@ -869,10 +869,9 @@ namespace CsToKotlinTranspiler
             var memberName = node.Name.ToString();
             var sym = _model.GetSymbolInfo(node).Symbol;
             var containingTypeName = sym?.ContainingType?.Name;
-            if (sym.Kind == SymbolKind.Method)
-            {
-            }
-
+            // When Roslyn cannot resolve the symbol (e.g. external libraries not referenced)
+            // `sym` will be null. In that case we still emit the member access without
+            // attempting to inspect its kind to avoid null reference exceptions.
             Visit(node.Expression);
             Write(".");
             var name = memberName;
@@ -882,7 +881,7 @@ namespace CsToKotlinTranspiler
                 return;
             }
 
-            if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
+            if (sym != null && (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property))
             {
                 name = ToCamelCase(name);
             }
