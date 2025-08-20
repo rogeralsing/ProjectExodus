@@ -49,7 +49,9 @@ namespace CsToKotlinTranspiler
                 .AllInterfaces
                 .SelectMany(@interface => @interface.GetMembers().OfType<IMethodSymbol>())
                 .Any(method =>
-                    methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+                    SymbolEqualityComparer.Default.Equals(
+                        methodSymbol,
+                        methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
 
@@ -60,7 +62,9 @@ namespace CsToKotlinTranspiler
                 .AllInterfaces
                 .SelectMany(@interface => @interface.GetMembers().OfType<IPropertySymbol>())
                 .Any(method =>
-                    methodSymbol.Equals(methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
+                    SymbolEqualityComparer.Default.Equals(
+                        methodSymbol,
+                        methodSymbol.ContainingType.FindImplementationForInterfaceMember(method)));
             return isInterfaceMethod;
         }
 
@@ -68,10 +72,19 @@ namespace CsToKotlinTranspiler
         public string Run(SyntaxNode root)
         {
             Setup();
-            _assignments = (from exp in root.DescendantNodes().OfType<AssignmentExpressionSyntax>()
-                let symbol = _model.GetSymbolInfo(exp.Left).Symbol
-                where symbol != null
-                group exp by symbol).ToDictionary(g => g.Key, g => g.ToArray());
+            _assignments = root
+                .DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                // Track each assignment alongside the symbol it updates
+                .Select(exp => new { exp, symbol = _model.GetSymbolInfo(exp.Left).Symbol })
+                .Where(x => x.symbol != null)
+                // Group by the symbol using Roslyn's equality comparer to avoid analyzer warnings
+                .GroupBy(x => x.symbol!, SymbolEqualityComparer.Default)
+                // Build a lookup from symbol to its assignments
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.exp).ToArray(),
+                    SymbolEqualityComparer.Default);
 
             Visit(root);
             return _sb.ToString();
