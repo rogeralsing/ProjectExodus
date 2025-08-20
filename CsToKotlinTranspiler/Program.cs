@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -17,12 +16,16 @@ namespace CsToKotlinTranspiler
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        // Entry point is asynchronous to avoid blocking and to enable awaiting
+        // asynchronous operations throughout the startup sequence.
+        private static async Task Main(string[] args)
         {
-            Run().Wait();
+            await Run(args);
         }
 
-        private static async Task Run()
+        // Runs the transpiler logic. Command-line arguments are accepted to
+        // allow future extensions without changing the signature.
+        private static async Task Run(string[] args)
         {
             MSBuildLocator.RegisterDefaults();
             var srcPath = @"/Users/rogerjohansson/RiderProjects/ConsoleApp4/ConsoleApp4.sln";
