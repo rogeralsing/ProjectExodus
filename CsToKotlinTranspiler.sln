@@ -3,13 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CsToKotlinTranspiler", "CsToKotlinTranspiler", "{DC23F242-1D39-3167-B150-D35A611DB365}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{DC23F242-1D39-3167-B150-D35A611DB365}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlin", "CsToKotlinTranspiler\CsToKotlin.csproj", "{C698BEB6-46A0-43A4-9A06-49F1CD3B62D2}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{19B0679E-560C-4F70-8E4B-74FBA98F755A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinTranspiler.Tests", "CsToKotlinTranspiler.Tests\CsToKotlinTranspiler.Tests.csproj", "{D23260AB-54E3-41B1-8584-232392A0E304}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlin", "src\CsToKotlinTranspiler\CsToKotlin.csproj", "{C698BEB6-46A0-43A4-9A06-49F1CD3B62D2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinCli", "CsToKotlinCli\CsToKotlinCli.csproj", "{F99A70F3-517D-42F7-98E3-C02DF90C03AB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinTranspiler.Tests", "tests\CsToKotlinTranspiler.Tests\CsToKotlinTranspiler.Tests.csproj", "{D23260AB-54E3-41B1-8584-232392A0E304}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CsToKotlinCli", "src\CsToKotlinCli\CsToKotlinCli.csproj", "{F99A70F3-517D-42F7-98E3-C02DF90C03AB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,7 +65,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C698BEB6-46A0-43A4-9A06-49F1CD3B62D2} = {DC23F242-1D39-3167-B150-D35A611DB365}
-		{D23260AB-54E3-41B1-8584-232392A0E304} = {DC23F242-1D39-3167-B150-D35A611DB365}
+		{D23260AB-54E3-41B1-8584-232392A0E304} = {19B0679E-560C-4F70-8E4B-74FBA98F755A}
 		{F99A70F3-517D-42F7-98E3-C02DF90C03AB} = {DC23F242-1D39-3167-B150-D35A611DB365}
 	EndGlobalSection
 EndGlobal
