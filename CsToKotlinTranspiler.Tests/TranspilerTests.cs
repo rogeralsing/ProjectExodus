@@ -183,5 +183,29 @@ public class TranspilerTests
         var kt = KotlinTranspiler.Transpile(code);
         Assert.Contains("/* unsupported: pointer type", kt);
         Assert.Contains("int* ptr", kt);
+
+    }
+    public void TranslatesRegex()
+    {
+        var code = "using System.Text.RegularExpressions; class Example { void Foo() { var ok = Regex.IsMatch(\"abc\", \"a.c\"); } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("Regex(\"a.c\").containsMatchIn(\"abc\")", kt);
+    }
+
+    [Fact]
+    public void TranslatesEncodingUtf8()
+    {
+        var code = "using System.Text; class Example { void Foo(byte[] b) { var s = Encoding.UTF8.GetString(b); } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("String(b, Charsets.UTF_8)", kt);
+    }
+
+    [Fact]
+    public void TranslatesBitConverter()
+    {
+        var code = "using System; class Example { int Foo(byte[] b) { return BitConverter.ToInt32(b,0); } }";
+        var kt = KotlinTranspiler.Transpile(code);
+        Assert.Contains("ByteBuffer.wrap(b).order(ByteOrder.LITTLE_ENDIAN).getInt(0)", kt);
+
     }
 }

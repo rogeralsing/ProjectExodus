@@ -29,6 +29,9 @@ namespace CsToKotlinTranspiler
             SetupThreading();
             SetupLinq();
             SetupTasks();
+            SetupRegex();
+            SetupEncoding();
+            SetupBitConverter();
         }
 
         // Map C# console helpers to Kotlin standard library.
@@ -284,6 +287,113 @@ namespace CsToKotlinTranspiler
         private void SetupTasks()
         {
             Translate("Task.FromResult", (node, member) => { Write(""); });
+        }
+
+        // Provide regex helpers.
+        private void SetupRegex()
+        {
+            Translate("Regex.IsMatch", (node, member) =>
+            {
+                if (member.Expression is IdentifierNameSyntax)
+                {
+                    var input = node.ArgumentList.Arguments.First();
+                    var pattern = node.ArgumentList.Arguments.ElementAt(1);
+                    Write("Regex(");
+                    Visit(pattern);
+                    Write(").containsMatchIn(");
+                    Visit(input);
+                    Write(")");
+                }
+                else
+                {
+                    Visit(member.Expression);
+                    Write(".containsMatchIn");
+                    Visit(node.ArgumentList);
+                }
+            });
+
+            Translate("Regex.Match", (node, member) =>
+            {
+                if (member.Expression is IdentifierNameSyntax)
+                {
+                    var input = node.ArgumentList.Arguments.First();
+                    var pattern = node.ArgumentList.Arguments.ElementAt(1);
+                    Write("Regex(");
+                    Visit(pattern);
+                    Write(").find(");
+                    Visit(input);
+                    Write(")");
+                }
+                else
+                {
+                    Visit(member.Expression);
+                    Write(".find");
+                    Visit(node.ArgumentList);
+                }
+            });
+        }
+
+        // Map encoding helpers.
+        private void SetupEncoding()
+        {
+            Translate("Encoding.GetString", (node, member) =>
+            {
+                var bytes = node.ArgumentList.Arguments.First();
+                if (member.Expression is MemberAccessExpressionSyntax ma &&
+                    ma.Expression.ToString() == "Encoding" && ma.Name.ToString() == "UTF8")
+                {
+                    Write("String(");
+                    Visit(bytes);
+                    Write(", Charsets.UTF_8)");
+                }
+                else
+                {
+                    Visit(member.Expression);
+                    Write(".decodeToString");
+                    Visit(node.ArgumentList);
+                }
+            });
+
+            Translate("Encoding.GetBytes", (node, member) =>
+            {
+                var str = node.ArgumentList.Arguments.First();
+                if (member.Expression is MemberAccessExpressionSyntax ma &&
+                    ma.Expression.ToString() == "Encoding" && ma.Name.ToString() == "UTF8")
+                {
+                    Visit(str);
+                    Write(".toByteArray(Charsets.UTF_8)");
+                }
+                else
+                {
+                    Visit(member.Expression);
+                    Write(".encode(");
+                    Visit(str);
+                    Write(").array()");
+                }
+            });
+        }
+
+        // Bridge BitConverter helpers.
+        private void SetupBitConverter()
+        {
+            Translate("BitConverter.ToInt32", (node, member) =>
+            {
+                var bytes = node.ArgumentList.Arguments.First();
+                var start = node.ArgumentList.Arguments.ElementAt(1);
+                Write("ByteBuffer.wrap(");
+                Visit(bytes);
+                Write(").order(ByteOrder.LITTLE_ENDIAN).getInt(");
+                Visit(start);
+                Write(")");
+            });
+
+            Translate("BitConverter.GetBytes", (node, member) =>
+            {
+                var value = node.ArgumentList.Arguments.First();
+                Write("ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(");
+                Visit(value);
+                Write(").array()");
+            });
         }
     }
 }

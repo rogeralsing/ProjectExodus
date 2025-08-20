@@ -6,6 +6,24 @@ Transpiler from C# to Kotlin.
 
 Very early pre alpha
 
+## Usage
+
+The transpiler expects the path to a C# solution and an output directory for the generated Kotlin files.
+
+```bash
+dotnet run --project CsToKotlinTranspiler -- <solution.sln> <output-directory>
+```
+
+You may also provide the paths via environment variables:
+
+```bash
+export CS2KOTLIN_SRC=/path/to/solution.sln
+export CS2KOTLIN_OUT=./kotlinOutput
+dotnet run --project CsToKotlinTranspiler
+```
+
+If neither arguments nor environment variables are supplied, the tool uses default paths.
+
 Demo:
 
 ```csharp
