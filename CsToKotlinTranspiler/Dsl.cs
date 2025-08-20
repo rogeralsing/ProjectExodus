@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,7 +22,18 @@ namespace CsToKotlinTranspiler
 
         public void Setup()
         {
-            // Console.WriteLine is handled through the DSL mapping, so no separate translator class is needed.
+            SetupConsole();
+            SetupActors();
+            SetupTime();
+            SetupAssertions();
+            SetupThreading();
+            SetupLinq();
+            SetupTasks();
+        }
+
+        // Map C# console helpers to Kotlin standard library.
+        private void SetupConsole()
+        {
             Translate("Console.WriteLine", (node, member) =>
             {
                 Write("println");
@@ -38,6 +49,11 @@ namespace CsToKotlinTranspiler
                 Write("readln");
                 Visit(node.ArgumentList);
             });
+        }
+
+        // Adapt Proto.Actor messaging primitives to Kotlin.
+        private void SetupActors()
+        {
             Translate("PID.Tell", (node, member) =>
             {
                 Visit(member.Expression);
@@ -80,6 +96,11 @@ namespace CsToKotlinTranspiler
                 Write(".spawnPrefixChild");
                 Visit(node.ArgumentList);
             });
+        }
+
+        // Convert TimeSpan factory methods to Kotlin Duration.
+        private void SetupTime()
+        {
             Translate("TimeSpan.FromSeconds", (node, member) =>
             {
                 Write("Duration.ofSeconds");
@@ -90,6 +111,11 @@ namespace CsToKotlinTranspiler
                 Write("Duration.ofMillis");
                 Visit(node.ArgumentList);
             });
+        }
+
+        // Translate xUnit assertions to Kotlin test assertions.
+        private void SetupAssertions()
+        {
             Translate("Assert.Equal", (node, member) =>
             {
                 Write("assertEquals");
@@ -175,12 +201,21 @@ namespace CsToKotlinTranspiler
                 Write("assertNotNull");
                 Visit(node.ArgumentList);
             });
+        }
 
+        // Bridge threading primitives.
+        private void SetupThreading()
+        {
             Translate("EventWaitHandle.Set", (node, member) =>
             {
                 Visit(member.Expression);
                 Write(".countDown()");
             });
+        }
+
+        // Provide Kotlin equivalents for common LINQ operators.
+        private void SetupLinq()
+        {
             Translate("Enumerable.Where", (node, member) =>
             {
                 Visit(member.Expression);
@@ -243,6 +278,11 @@ namespace CsToKotlinTranspiler
                     Write(")");
                 }
             });
+        }
+
+        // Map simple Task helpers.
+        private void SetupTasks()
+        {
             Translate("Task.FromResult", (node, member) => { Write(""); });
         }
     }
