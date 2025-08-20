@@ -11,7 +11,7 @@ Very early pre alpha
 The transpiler expects the path to a C# solution and an output directory for the generated Kotlin files.
 
 ```bash
-dotnet run --project CsToKotlinTranspiler -- <solution.sln> <output-directory>
+dotnet run --project src/CsToKotlinTranspiler -- <solution.sln> <output-directory>
 ```
 
 You may also provide the paths via environment variables:
@@ -19,7 +19,7 @@ You may also provide the paths via environment variables:
 ```bash
 export CS2KOTLIN_SRC=/path/to/solution.sln
 export CS2KOTLIN_OUT=./kotlinOutput
-dotnet run --project CsToKotlinTranspiler
+dotnet run --project src/CsToKotlinTranspiler
 ```
 
 If neither arguments nor environment variables are supplied, the tool uses default paths.
@@ -29,7 +29,7 @@ If neither arguments nor environment variables are supplied, the tool uses defau
 To transpile a single C# file and print the syntax-highlighted Kotlin directly to the console, use the companion CLI:
 
 ```bash
-dotnet run --project CsToKotlinCli -- <path-to-file.cs>
+dotnet run --project src/CsToKotlinCli -- <path-to-file.cs>
 ```
 
 Run the command with `-h` to show its built-in help text. The CLI uses [Spectre.Console](https://spectreconsole.net/) for colorful output.
