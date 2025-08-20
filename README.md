@@ -24,6 +24,16 @@ dotnet run --project CsToKotlinTranspiler
 
 If neither arguments nor environment variables are supplied, the tool uses default paths.
 
+### Single-file mode
+
+To transpile a single C# file and print the syntax-highlighted Kotlin directly to the console, use the companion CLI:
+
+```bash
+dotnet run --project CsToKotlinCli -- <path-to-file.cs>
+```
+
+Run the command with `-h` to show its built-in help text. The CLI uses [Spectre.Console](https://spectreconsole.net/) for colorful output.
+
 Demo:
 
 ```csharp
