@@ -222,7 +222,7 @@ namespace CsToKotlinTranspiler
                     var containingTypeName = sym?.ContainingType?.Name;
 
                     var signature = containingTypeName + "." + methodName;
-                    if (_methodTranslators.TryGetValue(signature, out var body))
+                    if (_methodTranslators.TryGetValue(signature, out var body) || _methodTranslators.TryGetValue(methodName, out body))
                     {
                         body(node, member);
                     }

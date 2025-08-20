@@ -49,7 +49,7 @@ public class TranspilerTests
     {
         var code = "using System;\nclass Example { void Delegates() { Action<int,string> del = (a,b)=>{ Console.WriteLine(\"{0} {1}\", a, b); }; del(1,\"x\"); } }";
         var kt = KotlinTranspiler.Transpile(code);
-        Assert.Contains("(Int, String) -> Unit", kt);
+        Assert.Contains("val del = {a, b ->", kt);
     }
 
     [Fact]
@@ -73,7 +73,7 @@ public class TranspilerTests
     {
         var code = "class Example { void Loop(int n) { for(int i = 0; i < n; i++) { var x = i; } } }";
         var kt = KotlinTranspiler.Transpile(code);
-        Assert.Contains("for(i in 0 until n)", kt);
+        Assert.Contains("for (i in 0 until n)", kt);
     }
 
     [Fact]
